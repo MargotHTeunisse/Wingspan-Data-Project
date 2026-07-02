@@ -1,4 +1,4 @@
-## What have I landed on?
+## What have I landed on? 🐦🐦‍⬛
 
 This is a personal project revolving around the popular bird-themed board game Wingspan. I enjoy the game very much, and had the idea that it could be the basis for a nice little data analysis project, which could also help me to get a better grip on SQL and the way that it combines with general programming languages.
 
