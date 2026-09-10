@@ -3,3 +3,11 @@
 
 #Jupyter notebook checkpoints
 *.ipynb_checkpoints
+
+#Temporary database files
+*.db
+*.db-journal
+db.sqlite3
+
+#IntelliJ files
+.idea
