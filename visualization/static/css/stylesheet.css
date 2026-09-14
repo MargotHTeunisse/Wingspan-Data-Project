@@ -6,3 +6,11 @@ main {
     left: 50%;
     transform: translate(-50%, -50%);
 }
+
+.search_result {
+    border: 5px solid black;
+    width: 200px;
+    margin: 10px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+}
