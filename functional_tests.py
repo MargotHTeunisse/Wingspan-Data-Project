@@ -28,31 +28,35 @@ class NewVisitorTest(unittest.TestCase):
         self.assertAlmostEqual(searchbox.location["x"] + searchbox.size["width"] / 2,
                                512, delta=10)
 
-    def test_can_start_wingspan_visualization(self):
+    def test_can_look_up_bird(self):
         ##Someone visits the website.
         self.browser.get('http://localhost:8000')
 
         ##They notice that it contains data for the popular board game Wingspan.
         self.assertIn("Wingspan", self.browser.title)
 
-        ##They haven't played the game, but they like birds.
-        ##They want to see if their favourite bird, the black-tailed godwit, is in the game.
+        ##They haven't played the game, but they know it's about birds.
+        ##They want to look up their favourite bird, the black-tailed godwit.
 
         ##They see a search bar; the search results are empty.
         searchbox = self.browser.find_element(By.ID, "search")
-        self.assertEqual("Enter scientific name...", searchbox.get_attribute("placeholder"))
         results = self.browser.find_elements(By.CLASS_NAME, "search_result")
         self.assertEqual(0, len(results))
+        #The search bar asks for the scientific name.
+        self.assertEqual("Enter scientific name...", searchbox.get_attribute("placeholder"))
 
-        ##They enter the scientific name.
-        searchbox.send_keys("Limosa limosa")
+        ##They know the scientific name is 'Limosa limosa'.
+        ##They assume 'Limosa' should narrow it down enough.
+        searchbox.send_keys("Limosa")
         searchbox.send_keys(Keys.ENTER)
 
-        ##They expect to see a single result: the black-tailed godwit.
-        results = self.browser.find_elements(By.CLASS_NAME, "search_result")
-        self.assertEqual(1, len(results))
+        #They wait max. 1 seconds for the results to load.
+        time.sleep(1)
 
-        self.assertEqual("Limosa limosa", results[0].text)
+        #They expect to find 'Limosa limosa' among the search results.
+        search_results = self.browser.find_elements(By.CLASS_NAME, "search_result")
+        self.assertGreater(len(search_results), 0)
+        self.assertTrue(any([result.text == "Limosa limosa" for  result in search_results]))
 
         self.fail("Finish the test!")
 
@@ -62,17 +66,6 @@ class NewVisitorTest(unittest.TestCase):
         ##- nests on the ground
         ##- has a wingspan of 76 cm
         ##- eats bugs and grains, but not berries, fish or rodents.
-
-        ##They notice that it has a nest capacity of 2.
-        ##That number doesn't tell them much; they need to see how this compares to other birds.
-        ##They plot the nest capacities, and find that 2 is the median nest capacity.
-
-        ##While they make this plot, they still want to keep the black-tailed godwit in view.
-
-        ##They notice that the bird is worth 6 victory points. They wonder what that value is based on.
-        ##The black-tailed godwit has 3 food tokens.
-        ##Perhaps birds are worth more points the more food they require?
-        ##They make a bar chart to check this.
 
         ##Satisfied, they close the application.
 

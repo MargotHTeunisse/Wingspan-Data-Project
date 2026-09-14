@@ -7,15 +7,14 @@
 </head>
 <body>
 <main>
-    <div>
     <form method="POST">
     <input id="search" name="scientific_name" placeholder="Enter scientific name...">
         {% csrf_token %}
     </form>
-    <table id="results_table">
-        <tr><td>{{result}}</td></tr>
-    </table>
-    </div>
+    <br>
+    {%  for result in search_results %}
+    <div class="search_result">{{result}}</div>
+    {% endfor %}
 </main>
 </body>
 </html>
