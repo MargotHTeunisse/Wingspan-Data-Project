@@ -24,7 +24,7 @@ class NewVisitorTest(unittest.TestCase):
                                512, delta=10)
 
         #They notice the results are centered as well.
-        searchbox = self.browser.find_element(By.ID, "results_table")
+        searchbox = self.browser.find_element(By.ID, "results_list")
         self.assertAlmostEqual(searchbox.location["x"] + searchbox.size["width"] / 2,
                                512, delta=10)
 
