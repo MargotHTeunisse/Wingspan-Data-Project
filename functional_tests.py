@@ -2,6 +2,7 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 import unittest
+import time
 
 class NewVisitorTest(unittest.TestCase):
     def setUp(self):
@@ -9,6 +10,23 @@ class NewVisitorTest(unittest.TestCase):
 
     def tearDown(self):
         self.browser.quit()
+
+    def test_layout_and_styling(self):
+        #Someone goes to the home page.
+        self.browser.get('http://localhost:8000')
+
+        #Their browser windows is set to a specific size.
+        self.browser.set_window_size(1024, 768)
+
+        #They notice the search box is centered.
+        searchbox = self.browser.find_element(By.ID,"search")
+        self.assertAlmostEqual(searchbox.location["x"] + searchbox.size["width"]/2,
+                               512, delta=10)
+
+        #They notice the results are centered as well.
+        searchbox = self.browser.find_element(By.ID, "results_table")
+        self.assertAlmostEqual(searchbox.location["x"] + searchbox.size["width"] / 2,
+                               512, delta=10)
 
     def test_can_start_wingspan_visualization(self):
         ##Someone visits the website.
@@ -19,21 +37,22 @@ class NewVisitorTest(unittest.TestCase):
 
         ##They haven't played the game, but they like birds.
         ##They want to see if their favourite bird, the black-tailed godwit, is in the game.
-        ##They look for a search bar.
+
+        ##They see a search bar; the search results are empty.
         searchbox = self.browser.find_element(By.ID, "search")
-        self.assertEqual(searchbox.get_attribute("placeholder"), "Look for a bird...")
+        self.assertEqual("Enter scientific name...", searchbox.get_attribute("placeholder"))
+        results = self.browser.find_elements(By.CLASS_NAME, "search_result")
+        self.assertEqual(0, len(results))
 
-        ##They would like to use the English name.
-        ##They therefore check whether the search bar allows English.
-        self.assertNotEqual("EN", searchbox.get_attribute("language"))
-
-        ##Since the language is not set to English, they try the scientific name.
+        ##They enter the scientific name.
         searchbox.send_keys("Limosa limosa")
         searchbox.send_keys(Keys.ENTER)
 
-        ##They expect only a single result.
-        results = self.browser.find_element(By.ID, "search_results")
-        self.assertEqual(results.size, 1)
+        ##They expect to see a single result: the black-tailed godwit.
+        results = self.browser.find_elements(By.CLASS_NAME, "search_result")
+        self.assertEqual(1, len(results))
+
+        self.assertEqual("Limosa limosa", results[0].text)
 
         self.fail("Finish the test!")
 

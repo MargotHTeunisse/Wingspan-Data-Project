@@ -6,6 +6,7 @@ class HomePageTest(TestCase):
         response = self.client.get("/")
         self.assertTemplateUsed(response, "home.html")
 
-    def test_renders_homepage_content(self):
+    def test_renders_form(self):
         response = self.client.get("/")
-        self.assertContains(response, "Wingspan data visualization")
+        self.assertContains(response, '<form method="POST">')
+        self.assertContains(response, '<input id="search"')

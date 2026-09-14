@@ -1,4 +1,23 @@
+{% load static %}
+
 <!DOCTYPE html>
-<html>
+<html lang="en">
+<head>
     <title>Wingspan data visualization</title>
+    <link rel="shortcut icon" href="#">
+    <link rel="stylesheet" href={% static "css/stylesheet.css" %}>
+</head>
+<body>
+<main>
+    <div>
+    <form method="POST">
+    <input id="search" name="scientific_name" placeholder="Enter scientific name...">
+        {% csrf_token %}
+    </form>
+    <table id="results_table">
+        <tr><td>{{result}}</td></tr>
+    </table>
+    </div>
+</main>
+</body>
 </html>
