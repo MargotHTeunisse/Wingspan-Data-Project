@@ -28,7 +28,7 @@ class NewVisitorTest(unittest.TestCase):
         self.assertAlmostEqual(searchbox.location["x"] + searchbox.size["width"] / 2,
                                512, delta=10)
 
-    def test_can_look_up_bird(self):
+    def test_can_look_up_birds(self):
         ##Someone visits the website.
         self.browser.get('http://localhost:8000')
 
@@ -36,8 +36,6 @@ class NewVisitorTest(unittest.TestCase):
         self.assertIn("Wingspan", self.browser.title)
 
         ##They haven't played the game, but they know it's about birds.
-        ##They want to look up their favourite bird, the black-tailed godwit.
-
         ##They see a search bar; the search results are empty.
         searchbox = self.browser.find_element(By.ID, "search")
         results = self.browser.find_elements(By.CLASS_NAME, "search_result")
@@ -45,29 +43,33 @@ class NewVisitorTest(unittest.TestCase):
         #The search bar asks for the scientific name.
         self.assertEqual("Enter scientific name...", searchbox.get_attribute("placeholder"))
 
-        ##They know the scientific name is 'Limosa limosa'.
-        ##They assume 'Limosa' should narrow it down enough.
-        searchbox.send_keys("Limosa")
+        ##They first look up their favourite bird, the black-tailed godwit.
+        ##The user knows the scientific name of the black-tailed godwit is 'Limosa limosa'.
+        searchbox.send_keys("Limosa limosa")
         searchbox.send_keys(Keys.ENTER)
 
         #They wait max. 1 seconds for the results to load.
         time.sleep(1)
 
-        #They expect to find 'Limosa limosa' among the search results.
+        #They expect to see the black-tailed godwit as the only search result,
+        # since they entered the full species name.
         search_results = self.browser.find_elements(By.CLASS_NAME, "search_result")
-        self.assertGreater(len(search_results), 0)
+        self.assertEqual(len(search_results), 1)
         self.assertTrue(any([result.text == "Limosa limosa" for  result in search_results]))
 
-        self.fail("Finish the test!")
+        #Reassured that their favourite bird is in the game, the user is curious to see other birds.
+        #They enter the 'Falco' genus to find out how many falcons the game contains.
+        searchbox = self.browser.find_element(By.ID, "search")
+        searchbox.send_keys("Falco")
+        searchbox.send_keys(Keys.ENTER)
+        time.sleep(1)
 
-        ##Now they want to check that the black-tailed godwit is represented accurately.
-        ##They check that the bird:
-        ##- lives in wetlands
-        ##- nests on the ground
-        ##- has a wingspan of 76 cm
-        ##- eats bugs and grains, but not berries, fish or rodents.
+        #Falcons being common enough, they expect to find at least two.
+        search_results = self.browser.find_elements(By.CLASS_NAME, "search_result")
+        self.assertGreater(len(search_results), 1)
+        self.assertTrue(all([result.text == "Falco" for  result in search_results]))
 
-        ##Satisfied, they close the application.
+        #Satisfied with the game's collection of birds, they close the application.
 
 
 
