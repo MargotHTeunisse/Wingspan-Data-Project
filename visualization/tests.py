@@ -11,7 +11,18 @@ class HomePageTest(TestCase):
         self.assertContains(response, '<form method="POST">')
         self.assertContains(response, '<input id="search"')
 
-    def test_can_save_a_post_request(self):
+    def test_can_retrieve_bird_by_full_name(self):
         response = self.client.post("/", data={"scientific_name": "Limosa limosa"})
         self.assertContains(response, "Limosa limosa")
+        self.assertTemplateUsed(response, "home.html")
+
+    def test_can_retrieve_bird_by_partial_name(self):
+        response = self.client.post("/", data={"scientific_name": "Limosa"})
+        self.assertContains(response, "Limosa limosa")
+        self.assertTemplateUsed(response, "home.html")
+
+
+    def test_can_retrieve_different_bird_by_full_name(self):
+        response = self.client.post("/", data={"scientific_name": "Falco peregrinus"})
+        self.assertContains(response, "Falco peregrinus")
         self.assertTemplateUsed(response, "home.html")
