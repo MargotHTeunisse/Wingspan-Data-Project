@@ -11,3 +11,7 @@ db.sqlite3
 
 #IntelliJ files
 .idea
+
+#Pycache
+**/__pycache__/
+staticfiles/
