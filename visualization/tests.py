@@ -10,3 +10,8 @@ class HomePageTest(TestCase):
         response = self.client.get("/")
         self.assertContains(response, '<form method="POST">')
         self.assertContains(response, '<input id="search"')
+
+    def test_can_save_a_post_request(self):
+        response = self.client.post("/", data={"scientific_name": "Limosa limosa"})
+        self.assertContains(response, "Limosa limosa")
+        self.assertTemplateUsed(response, "home.html")
