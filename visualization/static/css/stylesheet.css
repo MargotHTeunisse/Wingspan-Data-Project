@@ -2,9 +2,8 @@ main {
     text-align:center;
     margin: 0;
     position: absolute;
-    top: 50%;
     left: 50%;
-    transform: translate(-50%, -50%);
+    transform: translate(-50%, 0%);
 }
 
 .search_result {
