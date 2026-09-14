@@ -1,9 +1,10 @@
 from django.shortcuts import render
-from django.http import HttpResponse
-
+import operator as op
 
 # Create your views here.
 def home_page(request):
+    scientific_name = "Limosa limosa"
     query = request.POST.get("scientific_name")
     return render(request, "home.html",
-                  {"search_results": ([] if query is None else [query])})
+                  {"search_results": ([scientific_name] if query is not None and op.contains(scientific_name, query)
+    else [])})
