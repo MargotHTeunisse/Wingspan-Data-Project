@@ -1,5 +1,7 @@
 from django.test import TestCase
 
+from visualization.models import Bird
+
 
 class HomePageTest(TestCase):
     def test_uses_home_template(self):
@@ -26,3 +28,21 @@ class HomePageTest(TestCase):
         response = self.client.post("/", data={"scientific_name": "Falco peregrinus"})
         self.assertContains(response, "Falco peregrinus")
         self.assertTemplateUsed(response, "home.html")
+
+class BirdModelTest(TestCase):
+    def test_saving_and_retrieving_birds(self):
+        black_tailed_godwit = Bird()
+        black_tailed_godwit.scientific_name = "Limosa limosa"
+        black_tailed_godwit.save()
+
+        peregrine_falcon = Bird()
+        peregrine_falcon.scientific_name = "Falco peregrinus"
+        peregrine_falcon.save()
+
+        saved_birds = Bird.objects.all()
+        self.assertEqual(saved_birds.count(), 2)
+
+        first_bird = saved_birds[0]
+        second_bird = saved_birds[1]
+        self.assertEqual(first_bird.scientific_name, "Limosa limosa")
+        self.assertEqual(second_bird.scientific_name, "Falco peregrinus")
