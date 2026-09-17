@@ -1,11 +1,21 @@
+import time
+import unittest
+
+from django.test import LiveServerTestCase
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
-import unittest
-import time
 
-class NewVisitorTest(unittest.TestCase):
+from visualization.models import Bird
+
+
+class NewVisitorTest(LiveServerTestCase):
     def setUp(self):
+        for scientific_name in ["Limosa limosa", "Falco peregrinus", "Falco subbutea"]:
+            bird = Bird()
+            bird.scientific_name = scientific_name
+            bird.save()
+
         self.browser = webdriver.Firefox()
 
     def tearDown(self):
@@ -13,7 +23,7 @@ class NewVisitorTest(unittest.TestCase):
 
     def test_layout_and_styling(self):
         #Someone goes to the home page.
-        self.browser.get('http://localhost:8000')
+        self.browser.get(self.live_server_url)
 
         #Their browser windows is set to a specific size.
         self.browser.set_window_size(1024, 768)
@@ -30,7 +40,7 @@ class NewVisitorTest(unittest.TestCase):
 
     def test_can_look_up_birds(self):
         ##Someone visits the website.
-        self.browser.get('http://localhost:8000')
+        self.browser.get(self.live_server_url)
 
         ##They notice that it contains data for the popular board game Wingspan.
         self.assertIn("Wingspan", self.browser.title)
@@ -67,7 +77,7 @@ class NewVisitorTest(unittest.TestCase):
         #Falcons being common enough, they expect to find at least two.
         search_results = self.browser.find_elements(By.CLASS_NAME, "search_result")
         self.assertGreater(len(search_results), 1)
-        self.assertTrue(all([result.text == "Falco" for  result in search_results]))
+        self.assertTrue(all([result.text.startswith("Falco") for  result in search_results]))
 
         #Satisfied with the game's collection of birds, they close the application.
 
