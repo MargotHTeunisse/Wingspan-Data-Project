@@ -7,7 +7,6 @@ from selenium.webdriver.common.keys import Keys
 
 from visualization.models import Bird
 
-
 class NewVisitorTest(LiveServerTestCase):
     def setUp(self):
         for scientific_name in ["Limosa limosa", "Falco peregrinus", "Falco subbutea"]:
@@ -15,7 +14,9 @@ class NewVisitorTest(LiveServerTestCase):
             bird.scientific_name = scientific_name
             bird.save()
 
-        self.browser = webdriver.Firefox()
+        opts = webdriver.FirefoxOptions()
+        opts.add_argument("--headless")
+        self.browser = webdriver.Firefox(options=opts)
 
     def tearDown(self):
         self.browser.quit()
