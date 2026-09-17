@@ -1,3 +1,5 @@
+[![Django CI](https://github.com/MargotHTeunisse/Wingspan-Data-Project/actions/workflows/django.yml/badge.svg)](https://github.com/MargotHTeunisse/Wingspan-Data-Project/actions/workflows/django.yml)
+
 ## What have I landed on? 🐦🐦‍⬛
 
 This is a personal project revolving around the popular bird-themed board game Wingspan. I enjoy the game very much, and had the idea that it would be fun to do some data analysis with it, which could also help me to get a better grip on SQL and the way that it combines with general programming languages.
