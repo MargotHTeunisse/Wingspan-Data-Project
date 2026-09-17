@@ -6,26 +6,46 @@ from visualization.models import Bird
 class HomePageTest(TestCase):
     def test_uses_home_template(self):
         response = self.client.get("/")
+
         self.assertTemplateUsed(response, "home.html")
 
     def test_renders_form(self):
         response = self.client.get("/")
+
         self.assertContains(response, '<form method="POST">')
         self.assertContains(response, '<input id="search"')
 
     def test_can_retrieve_bird_by_full_name(self):
-        response = self.client.post("/", data={"scientific_name": "Limosa limosa"})
-        self.assertContains(response, "Limosa limosa")
+        black_tailed_godwit = Bird()
+        black_tailed_godwit.scientific_name = "Limosa limosa"
+        black_tailed_godwit.save()
+
+        response = self.client.post("/",
+                                    data={"scientific_name": black_tailed_godwit.scientific_name})
+
+        self.assertContains(response, black_tailed_godwit.scientific_name)
         self.assertTemplateUsed(response, "home.html")
 
     def test_can_retrieve_bird_by_partial_name(self):
-        response = self.client.post("/", data={"scientific_name": "Limosa"})
+        black_tailed_godwit = Bird()
+        black_tailed_godwit.scientific_name = "Limosa limosa"
+        black_tailed_godwit.save()
+
+        response = self.client.post("/",
+                                    data={"scientific_name": "Limosa"})
+
         self.assertContains(response, "Limosa limosa")
         self.assertTemplateUsed(response, "home.html")
 
 
     def test_can_retrieve_different_bird_by_full_name(self):
-        response = self.client.post("/", data={"scientific_name": "Falco peregrinus"})
+        peregrine_falcon = Bird()
+        peregrine_falcon.scientific_name = "Falco peregrinus"
+        peregrine_falcon.save()
+
+        response = self.client.post("/",
+                                    data={"scientific_name": peregrine_falcon.scientific_name})
+
         self.assertContains(response, "Falco peregrinus")
         self.assertTemplateUsed(response, "home.html")
 

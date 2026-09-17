@@ -1,10 +1,12 @@
 from django.shortcuts import render
 import operator as op
 
+from visualization.models import Bird
+
+
 # Create your views here.
 def home_page(request):
-    scientific_name = "Limosa limosa"
     query = request.POST.get("scientific_name")
     return render(request, "home.html",
-                  {"search_results": ([scientific_name] if query is not None and op.contains(scientific_name, query)
-    else [])})
+                  {"search_results": ([bird.scientific_name for bird in Bird.objects.all()
+                                       if op.contains(bird.scientific_name, query)])})
