@@ -23,7 +23,7 @@ class HomePageTest(TestCase):
         response = self.client.post("/",
                                     data={"scientific_name": black_tailed_godwit.scientific_name})
 
-        self.assertContains(response, black_tailed_godwit.scientific_name)
+        self.assertTrue(black_tailed_godwit.scientific_name in response.context['search_results'])
         self.assertTemplateUsed(response, "home.html")
 
     def test_can_retrieve_bird_by_partial_name(self):
@@ -34,7 +34,7 @@ class HomePageTest(TestCase):
         response = self.client.post("/",
                                     data={"scientific_name": "Limosa"})
 
-        self.assertContains(response, "Limosa limosa")
+        self.assertTrue("Limosa limosa" in response.context["search_results"])
         self.assertTemplateUsed(response, "home.html")
 
 
@@ -46,7 +46,18 @@ class HomePageTest(TestCase):
         response = self.client.post("/",
                                     data={"scientific_name": peregrine_falcon.scientific_name})
 
-        self.assertContains(response, "Falco peregrinus")
+        self.assertTrue("Falco peregrinus" in response.context['search_results'])
+        self.assertTemplateUsed(response, "home.html")
+
+    def test_bird_retrieval_is_case_insensitive(self):
+        peregrine_falcon = Bird()
+        peregrine_falcon.scientific_name = "Falco peregrinus"
+        peregrine_falcon.save()
+
+        response = self.client.post("/",
+                                    data={"scientific_name": "fAlCO"})
+
+        self.assertTrue("Falco peregrinus" in response.context['search_results'])
         self.assertTemplateUsed(response, "home.html")
 
 class BirdModelTest(TestCase):
