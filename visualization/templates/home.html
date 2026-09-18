@@ -21,11 +21,13 @@
         🇳🇱 {{bird.nl_name}}<br>
         <span class="nest_capacity">{{bird.nest_capacity}}</span><br>
     <div style="text-align:right">
-    {% if bird.worms > 0 %}🐛{% endif %}
-    {% if bird.grains > 0 %}🌾{% endif %}
-    {% if bird.berries > 0 %}🍒{% endif %}
-    {% if bird.rats > 0 %}🐁{% endif %}
-    {% if bird.fish > 0 %}🐟{% endif %}
+    {{bird.wingspan}}cm🪽 <br>
+    <hr>
+        {% if bird.worms > 0 or bird.wild > 0%}🐛{% endif %}
+    {% if bird.grains > 0 or bird.wild > 0%}🌾{% endif %}
+    {% if bird.berries > 0 or bird.wild > 0%}🍒{% endif %}
+    {% if bird.rats > 0 or bird.wild > 0%}🐁{% endif %}
+    {% if bird.fish > 0 or bird.wild > 0%}🐟{% endif %}
     </div>
     </div>
     {% endfor %}

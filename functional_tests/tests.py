@@ -9,7 +9,7 @@ from selenium.webdriver.common.keys import Keys
 from visualization.models import Bird
 
 
-class LayoutTest(StaticLiveServerTestCase):
+class NewVisitorTest(StaticLiveServerTestCase):
     def setUp(self):
         opts = webdriver.FirefoxOptions()
         opts.add_argument("--headless")
@@ -41,6 +41,7 @@ class LayoutTest(StaticLiveServerTestCase):
         bird.scientific_name = "Limosa limosa"
         bird.nl_name = "Grutto"
         bird.nest_capacity = 2
+        bird.wingspan = 76
         bird.worms = 1
         bird.grains = 1
         bird.save()
@@ -88,9 +89,10 @@ class LayoutTest(StaticLiveServerTestCase):
         self.assertIn("🇳🇱 Grutto", result.text)
 
         # They see that the black-tailed godwit:
-        # - lives in wetlands
         # - has a nest capacity of 2
+        # - has a wingspan of 76cm
         # - eats bugs and grains, but not berries, fish or rodents.
+        self.assertIn("76cm", result.text)
         self.assertTrue(result.text.count("🥚") == 2)
         self.assertIn("🌾", result.text)
         self.assertIn("🐛", result.text)
