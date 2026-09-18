@@ -10,6 +10,11 @@ main {
     border: 5px solid black;
     width: 200px;
     margin: 10px;
-    padding-top: 10px;
-    padding-bottom: 10px;
+    padding: 10px 5px;
+}
+
+.results_list {
+    min-width: 250px;
+    max-height: 80vh;
+    overflow: scroll;
 }

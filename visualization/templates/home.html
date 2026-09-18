@@ -14,11 +14,23 @@
         {% csrf_token %}
     </form>
     <br>
-<div id="results_list">
-    {%  for result in search_results %}
-    <div class="search_result">{{result}}</div>
+<div id="results_list" class="results_list">
+    {%  for bird in search_results %}
+    <div class="search_result">
+        <i>{{bird.scientific_name}}</i><br>
+        🇳🇱 {{bird.nl_name}}<br>
+        <span class="nest_capacity">{{bird.nest_capacity}}</span><br>
+    <div style="text-align:right">
+    {% if bird.worms > 0 %}🐛{% endif %}
+    {% if bird.grains > 0 %}🌾{% endif %}
+    {% if bird.berries > 0 %}🍒{% endif %}
+    {% if bird.rats > 0 %}🐁{% endif %}
+    {% if bird.fish > 0 %}🐟{% endif %}
+    </div>
+    </div>
     {% endfor %}
     </div>
 </main>
+<script src={% static 'js/style_eggs.js' %}></script>
 </body>
 </html>
