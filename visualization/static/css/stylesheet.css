@@ -4,6 +4,7 @@ main {
     position: absolute;
     left: 50%;
     transform: translate(-50%, 0%);
+    width: 90%;
 }
 
 .search_result {
@@ -11,10 +12,25 @@ main {
     width: 200px;
     margin: 10px;
     padding: 10px 5px;
+    position: relative;
+    left: 50%;
+    transform: translate(-50%, 0%);
 }
 
 .results_list {
     min-width: 250px;
     max-height: 80vh;
     overflow: scroll;
+}
+
+.left-section {
+    float: left;
+    width: 30%;
+    padding: 20px;
+}
+
+.right-section {
+    float: right;
+    width: 60%;
+    padding: 20px;
 }
