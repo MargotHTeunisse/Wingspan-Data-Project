@@ -5,9 +5,28 @@
     <title>Wingspan data visualization</title>
     <link rel="shortcut icon" href="#">
     <link rel="stylesheet" type="text/css"  href="{% static 'css/stylesheet.css'%}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.2.1/dist/chart.umd.min.js"></script>
+    <script src={% static 'js/show_chart.js' %}></script>
 </head>
 <body>
 <main>
+
+<section class="right-section">
+    <div>
+    <label>
+        <b style="font-size:24px">Property Distribution</b><br><br>
+        <select name="1D_plot_property_selection" onchange="showChart(this.value)">
+            <option selected disabled hidden value="">Inspect property...</option>
+            <option value="victory_points">Victory points</option>
+            <option value="nest_capacity">Nest capacity</option>
+            <option value="wingspan">Wingspan</option>
+        </select>
+    </label>
+    </div>
+    <canvas id="chart" width="500" height="500"></canvas>
+</section>
+
+<section class="left-section">
     <form method="POST">
         <b style="font-size:24px">Bird Archive</b><br><br>
     <input id="search" name="scientific_name" placeholder="Enter scientific name...">
@@ -32,7 +51,8 @@
     </div>
     {% endfor %}
     </div>
-</main>
 <script src={% static 'js/style_eggs.js' %}></script>
+</section>
+</main>
 </body>
 </html>
