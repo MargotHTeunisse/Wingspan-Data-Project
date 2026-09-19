@@ -15,3 +15,6 @@ db.sqlite3
 #Pycache
 **/__pycache__/
 staticfiles/
+
+#Notebooks (only used for tryout)
+notebooks/
