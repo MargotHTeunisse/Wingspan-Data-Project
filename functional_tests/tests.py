@@ -39,19 +39,38 @@ class NewVisitorTest(StaticLiveServerTestCase):
         #Their browser windows is set to a specific size.
         self.browser.set_window_size(1024, 768)
 
-        #They notice that the search box and search results are aligned.
+        #They notice that the search box and search results are approximately vertically aligned.
         searchbox = self.browser.find_element(By.ID,"search")
         search_results = self.browser.find_element(By.ID, "results_list")
         self.assertAlmostEqual(searchbox.location["x"] + searchbox.size["width"]/2,
-                               search_results.location["x"] + search_results.size["width"]/2, 0)
+                               search_results.location["x"] + search_results.size["width"]/2, -1)
 
-        #They notice that the search box is aligned with the selection menu for 1D plotting.
-        select_element = self.browser.find_element(By.NAME, "1D_plot_property_selection")
-        self.assertAlmostEqual(searchbox.location["y"], select_element.location["y"], -2)
+        #They notice that the search and chart areas are precisely horizontally aligned.
+        search_area = self.browser.find_element(By.ID, "search_area")
+        chart_area = self.browser.find_element(By.ID, "chart_area")
+        self.assertEqual(search_area.location["y"], chart_area.location["y"])
 
-        #They notice that the 1D plotting selection menu is to the right of the search plot.
-        self.assertGreater(select_element.location["x"] - select_element.size["width"]/2,
-                           searchbox.location["x"] + searchbox.size["width"]/2)
+        #They notice that the charting and search areas are precisely the same height.
+        self.assertEqual(search_area.size["height"], chart_area.size["height"])
+
+        #They notice that the charting area is to the right of the search area.
+        self.assertAlmostEqual(chart_area.location["x"],
+                           search_area.location["x"] + search_area.size["width"], -1)
+
+    def test_mobile_layout(self):
+        #Someone visits to the homepage from a mobile phone.
+        #Their screen has a resolution of 375x812 pixels.
+        self.browser.set_window_size(375, 812)
+
+        self.browser.get(self.live_server_url)
+
+        #They note that the select menu for the charting area is below the search area.
+        search_area = self.browser.find_element(By.ID, "search_area")
+        chart_area = self.browser.find_element(By.ID, "chart_area")
+        self.assertAlmostEqual(chart_area.location["y"], search_area.location["y"] + search_area.size["height"], -1)
+
+        #They note that the search and charting areas are precisely the same width.
+        self.assertEqual(chart_area.size["width"], search_area.size["width"])
 
     def test_can_look_up_birds(self):
         # Setup for test database
@@ -137,6 +156,9 @@ class NewVisitorTest(StaticLiveServerTestCase):
         # They would like to improve their strategy.
         self.browser.get(self.live_server_url)
 
+        #Their browser windows is set to a specific size.
+        self.browser.set_window_size(1024, 768)
+
         with make_temp_directory() as temp_dir_name:
             temp_dir = Path(temp_dir_name)
 
@@ -146,8 +168,12 @@ class NewVisitorTest(StaticLiveServerTestCase):
 
             # They also notice a blank charting area.
             chart = self.browser.find_element(By.ID, "chart")
+            initial_width = chart.size["width"]
+            initial_height = chart.size["height"]
+
             src_blank = str(temp_dir / "blank.png")
             chart.screenshot(src_blank)
+            img_blank = Image.open(src_blank).convert('RGB')
 
             # They want to know how victory points are distributed over birds.
             # They select the 'Victory points' property.
@@ -156,11 +182,18 @@ class NewVisitorTest(StaticLiveServerTestCase):
             time.sleep(1)
 
             # Max. 1 second after making their selection, they see a chart appear.
+            # The canvas maintains its size.
+
             chart = self.browser.find_element(By.ID, "chart")
+            self.assertAlmostEqual(initial_width, chart.size["width"], -1)
+            self.assertAlmostEqual(initial_height, chart.size["height"],  -1)
+
             src_victory_points = str(temp_dir / "victory_points.png")
             chart.screenshot(src_victory_points)
-            diff = ImageChops.difference(Image.open(src_victory_points),
-                                    Image.open(src_blank))
+            img_victory_points = Image.open(src_victory_points).convert('RGB')
+
+            diff = ImageChops.difference(Image.open(src_victory_points).convert('RGB'),
+                                    Image.open(src_blank).convert('RGB'))
             self.assertIsNotNone(diff.getbbox())
 
             # Satisfied with the victory points distribution, they also check the distribution of nest capacities.
@@ -168,13 +201,13 @@ class NewVisitorTest(StaticLiveServerTestCase):
             select.select_by_visible_text('Nest capacity')
             time.sleep(1)
             chart = self.browser.find_element(By.ID, "chart")
+
             src_nest_capacity = str(temp_dir / "nest_capacity.png")
             chart.screenshot(src_nest_capacity)
-            diff = ImageChops.difference(Image.open(src_nest_capacity),
-                                         Image.open(src_blank))
+            img_nest_capacity = Image.open(src_nest_capacity).convert('RGB')
+            diff = ImageChops.difference(img_nest_capacity, img_blank)
             self.assertIsNotNone(diff.getbbox())
-            diff = ImageChops.difference(Image.open(src_nest_capacity),
-                                         Image.open(src_victory_points))
+            diff = ImageChops.difference(img_nest_capacity, img_victory_points)
             self.assertIsNotNone(diff.getbbox())
 
         # Satisfied, the user closes the app.

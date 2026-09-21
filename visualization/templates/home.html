@@ -11,22 +11,7 @@
 <body>
 <main>
 
-<section class="right-section">
-    <div>
-    <label>
-        <b style="font-size:24px">Property Distribution</b><br><br>
-        <select name="1D_plot_property_selection" onchange="showChart(this.value)">
-            <option selected disabled hidden value="">Inspect property...</option>
-            <option value="victory_points">Victory points</option>
-            <option value="nest_capacity">Nest capacity</option>
-            <option value="wingspan">Wingspan</option>
-        </select>
-    </label>
-    </div>
-    <canvas id="chart" width="500" height="500"></canvas>
-</section>
-
-<section class="left-section">
+<section id="search_area">
     <form method="POST">
         <b style="font-size:24px">Bird Archive</b><br><br>
     <input id="search" name="scientific_name" placeholder="Enter scientific name...">
@@ -53,6 +38,25 @@
     </div>
 <script src={% static 'js/style_eggs.js' %}></script>
 </section>
+
+<section id="chart_area">
+    <div>
+    <label>
+        <b style="font-size:24px">Property Distribution</b><br><br>
+        <select name="1D_plot_property_selection" onchange="showChart(this.value)">
+            <option selected disabled hidden value="">Inspect property...</option>
+            <option value="victory_points">Victory points</option>
+            <option value="nest_capacity">Nest capacity</option>
+            <option value="wingspan">Wingspan</option>
+        </select>
+    </label>
+    </div>
+    <br>
+    <div class="canvas-container">
+    <canvas id="chart" width="1000" height="1000"></canvas>
+        </div>
+</section>
+
 </main>
 </body>
 </html>
