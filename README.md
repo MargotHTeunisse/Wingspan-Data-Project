@@ -59,7 +59,7 @@ I am certainly not alone in taking an interest in the data behind Wingspan, and 
 
 Also worth mentioning is the [Wingspan spreadsheet](https://boardgamegeek.com/filepage/193164/wingspan-spreadsheet-bird-cards-bonus-cards-end-of) by TawnyFrogMouth on BoardGameGeek. While I preferred to construct my own database for this project, TawnyFrogMouth's data is at the basis of many Wingspan data analysis project, including Wingsearch.
 
-Finally, want to mention the series (The Maths Behind Wingspan)[https://youtube.com/playlist?list=PLMmCK_-bDs_mvwsFrDiDeWqy_8oG-mOBz&si=A6sC7QOFLrep4Ye6] by Wingin' it on Youtube. The series uses mathematical analysis of Wingspan to give strategy advice, and while analysis was not my focus here, this series was what pushed me to try and look at Wingspan through a research lens.
+Finally, want to mention the series [The Maths Behind Wingspan](https://youtube.com/playlist?list=PLMmCK_-bDs_mvwsFrDiDeWqy_8oG-mOBz&si=A6sC7QOFLrep4Ye6) by Wingin' it on Youtube. The series uses mathematical analysis of Wingspan to give strategy advice, and while analysis was not my focus here, this series was what pushed me to try and look at Wingspan through a research lens.
 
 --------------------
 
