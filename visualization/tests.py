@@ -1,4 +1,5 @@
 from django.test import TestCase
+from parameterized import parameterized
 
 from visualization.models import Bird
 
@@ -15,53 +16,31 @@ class HomePageTest(TestCase):
         self.assertContains(response, '<form method="GET">')
         self.assertContains(response, '<input id="search"')
 
-    def test_can_retrieve_bird_by_full_name(self):
-        black_tailed_godwit = Bird()
-        black_tailed_godwit.scientific_name = "Limosa limosa"
-        black_tailed_godwit.save()
+    def test_home_template_is_used(self):
+        response = self.client.get("/", data={"scientific_name": "Limosa limosa"})
 
-        response = self.client.get("/",
-                                    data={"scientific_name": black_tailed_godwit.scientific_name})
-
-        self.assertTrue(black_tailed_godwit in response.context['search_results'])
         self.assertTemplateUsed(response, "home.html")
 
-    def test_can_retrieve_bird_by_partial_name(self):
-        black_tailed_godwit = Bird()
-        black_tailed_godwit.scientific_name = "Limosa limosa"
-        black_tailed_godwit.save()
+    @parameterized.expand(
+                             [
+                                 ["Limosa limosa", "Limosa limosa"],
+                                 ["Limosa limosa", "Limosa"],
+                                 ["Falco peregrinus", "Falco peregrinus"],
+                                 ["Falco peregrinus", "Falco"],
+                                 ["Falco peregrinus", "fALcO"]
+                             ])
+    def test_can_retrieve_bird(self, scientific_name:str, query:str):
+        bird = Bird()
+        bird.scientific_name = scientific_name
+        bird.save()
 
         response = self.client.get("/",
-                                    data={"scientific_name": "Limosa"})
+                                    data={"scientific_name": query})
 
-        self.assertTrue(black_tailed_godwit in response.context["search_results"])
-        self.assertTemplateUsed(response, "home.html")
-
-
-    def test_can_retrieve_different_bird_by_full_name(self):
-        peregrine_falcon = Bird()
-        peregrine_falcon.scientific_name = "Falco peregrinus"
-        peregrine_falcon.save()
-
-        response = self.client.get("/",
-                                    data={"scientific_name": peregrine_falcon.scientific_name})
-
-        self.assertTrue(peregrine_falcon in response.context['search_results'])
-        self.assertTemplateUsed(response, "home.html")
-
-    def test_bird_retrieval_is_case_insensitive(self):
-        peregrine_falcon = Bird()
-        peregrine_falcon.scientific_name = "Falco peregrinus"
-        peregrine_falcon.save()
-
-        response = self.client.get("/",
-                                    data={"scientific_name": "fAlCO"})
-
-        self.assertTrue(peregrine_falcon in response.context['search_results'])
-        self.assertTemplateUsed(response, "home.html")
+        self.assertTrue(bird in response.context['search_results'])
 
 class BirdModelTest(TestCase):
-    def test_saving_and_retrieving_birds(self):
+    def test_can_save_multiple_birds(self):
         black_tailed_godwit = Bird()
         black_tailed_godwit.scientific_name = "Limosa limosa"
         black_tailed_godwit.save()
@@ -73,7 +52,15 @@ class BirdModelTest(TestCase):
         saved_birds = Bird.objects.all()
         self.assertEqual(saved_birds.count(), 2)
 
-        first_bird = saved_birds[0]
-        second_bird = saved_birds[1]
-        self.assertEqual(first_bird.scientific_name, "Limosa limosa")
-        self.assertEqual(second_bird.scientific_name, "Falco peregrinus")
+    @parameterized.expand([
+                    ["Limosa limosa"],
+                    ["Falco peregrinus"]
+                ])
+    def test_saving_and_retrieving_single_bird(self, scientific_name:str):
+        bird = Bird()
+        bird.scientific_name = scientific_name
+        bird.save()
+
+        saved_birds = Bird.objects.all()
+
+        self.assertEqual(saved_birds[0].scientific_name, scientific_name)
