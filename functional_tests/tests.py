@@ -8,12 +8,15 @@ from pathlib import Path
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
 
 from selenium import webdriver
+from selenium.common import WebDriverException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.select import Select
 from PIL import Image, ImageChops
 
 from visualization.models import Bird
+
+MAX_WAIT = 2
 
 @contextlib.contextmanager
 def make_temp_directory():
@@ -31,6 +34,34 @@ class NewVisitorTest(StaticLiveServerTestCase):
 
     def tearDown(self):
         self.browser.quit()
+
+    def wait_for_named_search_result(self, name:str):
+        start_time = time.time()
+        while True:
+            try:
+                search_results = self.browser.find_elements(By.CLASS_NAME, "search_result")
+                self.assertTrue(any([name in result.text for result in search_results]))
+                return
+            except (AssertionError, WebDriverException):
+                if time.time() - start_time > MAX_WAIT:
+                    raise
+                time.sleep(0.2)
+
+    def wait_for_chart_change(self, old_img:Image, new_img_src:str):
+        start_time = time.time()
+        while True:
+            try:
+                chart = self.browser.find_element(By.ID, "chart")
+                chart.screenshot(new_img_src)
+                new_img = Image.open(new_img_src).convert('RGB')
+
+                diff = ImageChops.difference(new_img, old_img)
+                self.assertIsNotNone(diff.getbbox())
+                return
+            except (AssertionError, WebDriverException):
+                if time.time() - start_time > MAX_WAIT:
+                    raise
+                time.sleep(0.2)
 
     def test_layout_and_styling(self):
         #Someone goes to the home page.
@@ -110,19 +141,18 @@ class NewVisitorTest(StaticLiveServerTestCase):
         searchbox.send_keys("Limosa limosa")
         searchbox.send_keys(Keys.ENTER)
 
-        # They wait max. 1 second for the results to load.
-        time.sleep(1)
+        # They wait for the results to load.
+        self.wait_for_named_search_result("Limosa limosa")
 
         # They expect to see the black-tailed godwit as the only search result,
         # since they entered the full species name.
         search_results = self.browser.find_elements(By.CLASS_NAME, "search_result")
         self.assertEqual(len(search_results), 1)
-        result = search_results[0]
-        self.assertIn("Limosa limosa", result.text)
 
         # To check that their favourite bird is represented accurately,
         # they check the bird properties.
         # They notice the Dutch name is given, and learn the bird is called 'Grutto'.
+        result = search_results[0]
         self.assertIn("🇳🇱 Grutto", result.text)
 
         # They see that the black-tailed godwit:
@@ -142,12 +172,15 @@ class NewVisitorTest(StaticLiveServerTestCase):
         searchbox = self.browser.find_element(By.ID, "search")
         searchbox.send_keys("falco")
         searchbox.send_keys(Keys.ENTER)
-        time.sleep(1)
+
+        self.wait_for_named_search_result("Falco")
+
+        #They expect all birds to have names starting with the genus 'Falco'.
+        search_results = self.browser.find_elements(By.CLASS_NAME, "search_result")
+        self.assertTrue(all([result.text.startswith("Falco") for result in search_results]))
 
         # Falcons being common enough, they expect to find at least two.
-        search_results = self.browser.find_elements(By.CLASS_NAME, "search_result")
         self.assertGreater(len(search_results), 1)
-        self.assertTrue(all([result.text.startswith("Falco") for result in search_results]))
 
         # Satisfied with the game's collection of birds, they close the application.
 
@@ -179,35 +212,28 @@ class NewVisitorTest(StaticLiveServerTestCase):
             # They select the 'Victory points' property.
             select = Select(select_element)
             select.select_by_visible_text('Victory points')
-            time.sleep(1)
 
-            # Max. 1 second after making their selection, they see a chart appear.
-            # The canvas maintains its size.
+            # They wait for the chart to change.
+            src_victory_points = str(temp_dir / "victory_points.png")
+            self.wait_for_chart_change(img_blank, src_victory_points)
+            img_victory_points = Image.open(src_victory_points).convert('RGB')
 
+            # The canvas maintains its size after the chart has changed.
             chart = self.browser.find_element(By.ID, "chart")
             self.assertAlmostEqual(initial_width, chart.size["width"], -1)
             self.assertAlmostEqual(initial_height, chart.size["height"],  -1)
 
-            src_victory_points = str(temp_dir / "victory_points.png")
-            chart.screenshot(src_victory_points)
-            img_victory_points = Image.open(src_victory_points).convert('RGB')
-
-            diff = ImageChops.difference(Image.open(src_victory_points).convert('RGB'),
-                                    Image.open(src_blank).convert('RGB'))
-            self.assertIsNotNone(diff.getbbox())
 
             # Satisfied with the victory points distribution, they also check the distribution of nest capacities.
-            #The chart changes visibly.
             select.select_by_visible_text('Nest capacity')
-            time.sleep(1)
-            chart = self.browser.find_element(By.ID, "chart")
 
+            # They wait again for the chart to change.
             src_nest_capacity = str(temp_dir / "nest_capacity.png")
-            chart.screenshot(src_nest_capacity)
+            self.wait_for_chart_change(img_victory_points, src_nest_capacity)
             img_nest_capacity = Image.open(src_nest_capacity).convert('RGB')
+
+             # The chart having changed, they check that it is not blank.
             diff = ImageChops.difference(img_nest_capacity, img_blank)
-            self.assertIsNotNone(diff.getbbox())
-            diff = ImageChops.difference(img_nest_capacity, img_victory_points)
             self.assertIsNotNone(diff.getbbox())
 
         # Satisfied, the user closes the app.
