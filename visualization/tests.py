@@ -12,7 +12,7 @@ class HomePageTest(TestCase):
     def test_renders_form(self):
         response = self.client.get("/")
 
-        self.assertContains(response, '<form method="POST">')
+        self.assertContains(response, '<form method="GET">')
         self.assertContains(response, '<input id="search"')
 
     def test_can_retrieve_bird_by_full_name(self):
@@ -20,7 +20,7 @@ class HomePageTest(TestCase):
         black_tailed_godwit.scientific_name = "Limosa limosa"
         black_tailed_godwit.save()
 
-        response = self.client.post("/",
+        response = self.client.get("/",
                                     data={"scientific_name": black_tailed_godwit.scientific_name})
 
         self.assertTrue(black_tailed_godwit in response.context['search_results'])
@@ -31,7 +31,7 @@ class HomePageTest(TestCase):
         black_tailed_godwit.scientific_name = "Limosa limosa"
         black_tailed_godwit.save()
 
-        response = self.client.post("/",
+        response = self.client.get("/",
                                     data={"scientific_name": "Limosa"})
 
         self.assertTrue(black_tailed_godwit in response.context["search_results"])
@@ -43,7 +43,7 @@ class HomePageTest(TestCase):
         peregrine_falcon.scientific_name = "Falco peregrinus"
         peregrine_falcon.save()
 
-        response = self.client.post("/",
+        response = self.client.get("/",
                                     data={"scientific_name": peregrine_falcon.scientific_name})
 
         self.assertTrue(peregrine_falcon in response.context['search_results'])
@@ -54,7 +54,7 @@ class HomePageTest(TestCase):
         peregrine_falcon.scientific_name = "Falco peregrinus"
         peregrine_falcon.save()
 
-        response = self.client.post("/",
+        response = self.client.get("/",
                                     data={"scientific_name": "fAlCO"})
 
         self.assertTrue(peregrine_falcon in response.context['search_results'])

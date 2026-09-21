@@ -12,9 +12,9 @@
 <main>
 
 <section id="search_area">
-    <form method="POST">
+    <form method="GET">
         <b style="font-size:24px">Bird Archive</b><br><br>
-    <input id="search" name="scientific_name" placeholder="Enter scientific name...">
+    <input id="search" name="scientific_name" formmethod="get" placeholder="Enter scientific name...">
         {% csrf_token %}
     </form>
     <br>
