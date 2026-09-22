@@ -1,4 +1,5 @@
 from django.shortcuts import render
+from django.http import JsonResponse
 import operator as op
 
 from visualization.models import Bird
@@ -12,3 +13,6 @@ def home_page(request):
                                        if op.contains(bird.scientific_name.upper(), query.upper())]
                                       if query is not None
                                       else [])})
+
+def stub(request):
+    return JsonResponse({})

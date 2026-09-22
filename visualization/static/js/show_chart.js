@@ -1,5 +1,7 @@
-function showChart(property) {
+async function showChart(property, label) {
     let context = document.getElementById("chart")
+
+    await fetch('/api/distribution/'+property).then(response => response.json())
 
     let chart = Chart.getChart("chart")
     if (chart !== undefined) {
@@ -27,7 +29,7 @@ function showChart(property) {
                     x: {
                         title: {
                             display: true,
-                            text: property
+                            text: label
                         }
                     }
                 },
