@@ -22,4 +22,23 @@ describe("Distribution chart", () => {
 
     expect(chart.config.type).toEqual("bar")
   });
+
+  it("should have count on y-axis", () => {
+    showChart("")
+
+    let chart = Chart.getChart("chart")
+
+    expect(chart.config.options.scales.y.title.text).toEqual("Count")
+    expect(chart.config.options.scales.y.title.display).toEqual(true)
+  });
+
+  it("should have property on x-axis", () => {
+    let property = "Victory points"
+    showChart(property)
+
+    let chart = Chart.getChart("chart")
+
+    expect(chart.config.options.scales.x.title.text).toEqual(property)
+    expect(chart.config.options.scales.x.title.display).toEqual(true)
+  });
 })

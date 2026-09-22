@@ -16,13 +16,24 @@ function showChart(property) {
                 }]
             },
             options: {
+                scales: {
+                    y: {
+                        title: {
+                            display: true,
+                            text: "Count"
+                        }
+                    },
+
+                    x: {
+                        title: {
+                            display: true,
+                            text: property
+                        }
+                    }
+                },
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: {
-                title: {
-                    display: true,
-                    text: property
-                },
                  legend: {
                     display: false
                  }
