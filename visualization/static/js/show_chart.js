@@ -1,7 +1,9 @@
 async function showChart(property, label) {
     let context = document.getElementById("chart")
 
-    await fetch('/api/distribution/'+property).then(response => response.json())
+    let distribution = await fetch('/api/distribution/'+property)
+        .then(response => response.json())
+        .then(response => response.distribution)
 
     let chart = Chart.getChart("chart")
     if (chart !== undefined) {
@@ -12,9 +14,9 @@ async function showChart(property, label) {
         {
             type: "bar",
             data: {
-                labels: ['A', 'B', 'C'],
+                labels: distribution.values,
                 datasets: [{
-                    data: [1, 3, 2],
+                    data: distribution.counts,
                 }]
             },
             options: {

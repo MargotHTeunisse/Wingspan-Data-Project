@@ -39,6 +39,73 @@ class HomePageTest(TestCase):
 
         self.assertTrue(bird in response.context['search_results'])
 
+class DistributionAPITest(TestCase):
+    def test_can_request_victory_points_distribution(self):
+        response = self.client.get('/api/distribution/victory_points',
+                                   content_type='application/json').json()
+
+        self.assertIn('distribution', response)
+
+    def test_can_request_wingspan_distribution(self):
+        response = self.client.get('/api/distribution/wingspan',
+                                   content_type='application/json').json()
+
+        self.assertIn('distribution', response)
+
+    def test_can_request_nest_capacity_distribution(self):
+        response = self.client.get('/api/distribution/nest_capacity',
+                                   content_type='application/json').json()
+
+        self.assertIn('distribution', response)
+
+    def test_can_retrieve_victory_points_data(self):
+        # Test data
+        for (scientific_name, vp) in (
+                zip(['Limosa limosa', 'Falco peregrinus', 'Falco subbuteo'],
+                                 [6, 5, 4])):
+            bird = Bird()
+            bird.scientific_name = scientific_name
+            bird.victory_points = vp
+            bird.save()
+
+        response = self.client.get('/api/distribution/victory_points',
+                                   content_type='application/json').json()
+
+        self.assertEqual(response['distribution']['values'], [4, 5, 6])
+        self.assertEqual(response['distribution']['counts'], [1, 1, 1])
+
+    def test_can_retrieve_nest_capacity_data(self):
+        # Test data
+        for (scientific_name, nc) in (
+                zip(['Limosa limosa', 'Falco peregrinus', 'Falco subbuteo'],
+                                 [2, 2, 2])):
+            bird = Bird()
+            bird.scientific_name = scientific_name
+            bird.nest_capacity = nc
+            bird.save()
+
+        response = self.client.get('/api/distribution/nest_capacity',
+                                   content_type='application/json').json()
+
+        self.assertEqual(response['distribution']['values'], [2])
+        self.assertEqual(response['distribution']['counts'], [3])
+
+    def test_can_retrieve_wingspan_data(self):
+        # Test data
+        for (scientific_name, ws) in (
+                zip(['Limosa limosa', 'Falco peregrinus', 'Falco subbuteo'],
+                                 [76, 104, 75])):
+            bird = Bird()
+            bird.scientific_name = scientific_name
+            bird.wingspan = ws
+            bird.save()
+
+        response = self.client.get('/api/distribution/wingspan',
+                                   content_type='application/json').json()
+
+        self.assertEqual(response['distribution']['values'], [75, 76, 104])
+        self.assertEqual(response['distribution']['counts'], [1, 1, 1])
+
 class BirdModelTest(TestCase):
     def test_can_save_multiple_birds(self):
         black_tailed_godwit = Bird()
