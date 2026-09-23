@@ -12,7 +12,7 @@ describe("Distribution chart", () => {
 
     // Set a mock API call
     fetchSpy = spyOn(window, 'fetch').and.returnValue(
-        Promise.resolve(new Response(JSON.stringify({distribution: {values: [4, 5, 6], counts:[3, 2, 1]}})))
+        Promise.resolve(new Response(JSON.stringify({distribution: {values: [], counts:[]}})))
   )
   });
 
@@ -61,6 +61,9 @@ describe("Distribution chart", () => {
   });
 
   it("shows data passed through API", async() => {
+    fetchSpy.and.returnValue(
+        Promise.resolve(new Response(JSON.stringify({distribution: {values: [4, 5, 6], counts:[3, 2, 1]}})))
+    )
     await showChart("")
 
     let chart = Chart.getChart("chart")
@@ -68,4 +71,26 @@ describe("Distribution chart", () => {
     expect(chart.config.data.labels).toEqual([4, 5, 6])
     expect(chart.config.data.datasets[0].data).toEqual([3, 2, 1])
   });
+
+  it("should have categorical x-axis for qualitative data", async() => {
+    fetchSpy.and.returnValue(
+        Promise.resolve(
+            new Response(JSON.stringify({distribution: {values: ['A', 'B', 'C'], counts:[3, 2, 1]}})))
+      )
+    await showChart("")
+    let chart = Chart.getChart("chart")
+
+    expect(chart.config.options.scales.x.type).toEqual('category')
+  });
+
+  it("should have linear x-axis for quantitative data", async() => {
+    fetchSpy.and.returnValue(
+        Promise.resolve(
+            new Response(JSON.stringify({distribution: {values: [4, 5, 6], counts:[3, 2, 1]}})))
+      )
+    await showChart("")
+    let chart = Chart.getChart("chart")
+
+    expect(chart.config.options.scales.x.type).toEqual('linear')
+  })
 });

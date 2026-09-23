@@ -1,7 +1,7 @@
-import numpy as np
-from django.shortcuts import render
-from django.http import JsonResponse, HttpResponseBadRequest
 import operator as op
+
+from django.http import JsonResponse, HttpResponseBadRequest
+from django.shortcuts import render
 
 from visualization.models import Bird
 

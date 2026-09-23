@@ -10,6 +10,8 @@ async function showChart(property, label) {
         chart.destroy()
     }
 
+    let dataIsNumerical = Object.values(distribution.values).every(val => isFinite(val))
+
     const newChart = new Chart(context,
         {
             type: "bar",
@@ -29,6 +31,7 @@ async function showChart(property, label) {
                     },
 
                     x: {
+                        type: dataIsNumerical? 'linear':'category',
                         title: {
                             display: true,
                             text: label
