@@ -1,7 +1,7 @@
 async function showChart(property, label) {
     let context = document.getElementById("chart")
 
-    let distribution = await fetch('/api/distribution/'+property)
+    let distribution = await fetch('/api/distribution?property='+property)
         .then(response => response.json())
         .then(response => response.distribution)
 

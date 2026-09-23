@@ -41,19 +41,19 @@ class HomePageTest(TestCase):
 
 class DistributionAPITest(TestCase):
     def test_can_request_victory_points_distribution(self):
-        response = self.client.get('/api/distribution/victory_points',
+        response = self.client.get('/api/distribution?property=victory_points',
                                    content_type='application/json').json()
 
         self.assertIn('distribution', response)
 
     def test_can_request_wingspan_distribution(self):
-        response = self.client.get('/api/distribution/wingspan',
+        response = self.client.get('/api/distribution?property=wingspan',
                                    content_type='application/json').json()
 
         self.assertIn('distribution', response)
 
     def test_can_request_nest_capacity_distribution(self):
-        response = self.client.get('/api/distribution/nest_capacity',
+        response = self.client.get('/api/distribution?property=nest_capacity',
                                    content_type='application/json').json()
 
         self.assertIn('distribution', response)
@@ -68,7 +68,7 @@ class DistributionAPITest(TestCase):
             bird.victory_points = vp
             bird.save()
 
-        response = self.client.get('/api/distribution/victory_points',
+        response = self.client.get('/api/distribution?property=victory_points',
                                    content_type='application/json').json()
 
         self.assertEqual(response['distribution']['values'], [4, 5, 6])
@@ -84,7 +84,7 @@ class DistributionAPITest(TestCase):
             bird.nest_capacity = nc
             bird.save()
 
-        response = self.client.get('/api/distribution/nest_capacity',
+        response = self.client.get('/api/distribution?property=nest_capacity',
                                    content_type='application/json').json()
 
         self.assertEqual(response['distribution']['values'], [2])
@@ -100,11 +100,16 @@ class DistributionAPITest(TestCase):
             bird.wingspan = ws
             bird.save()
 
-        response = self.client.get('/api/distribution/wingspan',
+        response = self.client.get('/api/distribution?property=wingspan',
                                    content_type='application/json').json()
 
         self.assertEqual(response['distribution']['values'], [75, 76, 104])
         self.assertEqual(response['distribution']['counts'], [1, 1, 1])
+
+def test_forbidden_property_request_raises_bad_request_error(self):
+    invalid_response = self.client.get('/api/distribution?property=forbidden')
+
+    self.assertEqual(invalid_response.status_code, 400)
 
 class BirdModelTest(TestCase):
     def test_can_save_multiple_birds(self):

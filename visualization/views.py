@@ -1,6 +1,6 @@
 import numpy as np
 from django.shortcuts import render
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponseBadRequest
 import operator as op
 
 from visualization.models import Bird
@@ -15,29 +15,18 @@ def home_page(request):
                                       if query is not None
                                       else [])})
 
-def victory_points_distribution(request):
+def distribution(request):
     # Use numpy to easily determine data for bar chart
-    data = np.unique([bird.victory_points for bird in Bird.objects.all()],
-                               return_counts=True)
+    property = request.GET.get('property')
+    allowlist = ['victory_points', 'wingspan', 'nest_capacity']
 
-    # Convert to a format which JSON parser can understand
-    values = [int(v) for v in data[0]]
-    counts = [int(c) for c in data[1]]
+    if property is None:
+        return HttpResponseBadRequest(f"No property selected.")
 
-    return JsonResponse({'distribution': {'values': values, 'counts': counts}})
+    if not property in allowlist:
+        return HttpResponseBadRequest("Distribution is not available for selected property.")
 
-def wingspan_distribution(request):
-    data = np.unique([bird.wingspan for bird in Bird.objects.all()],
-                               return_counts=True)
-
-    # Convert to a format which JSON parser can understand
-    values = [int(v) for v in data[0]]
-    counts = [int(c) for c in data[1]]
-
-    return JsonResponse({'distribution': {'values': values, 'counts': counts}})
-
-def nest_capacity_distribution(request):
-    data = np.unique([bird.nest_capacity for bird in Bird.objects.all()],
+    data = np.unique([getattr(bird, property) for bird in Bird.objects.all()],
                                return_counts=True)
 
     # Convert to a format which JSON parser can understand

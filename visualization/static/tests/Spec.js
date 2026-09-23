@@ -51,13 +51,13 @@ describe("Distribution chart", () => {
   it("fetches victory points distribution when requested", async() => {
     await showChart("victory_points")
 
-    expect(fetchSpy).toHaveBeenCalledOnceWith('/api/distribution/victory_points')
+    expect(fetchSpy).toHaveBeenCalledOnceWith('/api/distribution?property=victory_points')
   });
 
   it("fetches wingspan distribution when requested", async() => {
     await showChart("wingspan")
 
-    expect(fetchSpy).toHaveBeenCalledOnceWith('/api/distribution/wingspan')
+    expect(fetchSpy).toHaveBeenCalledOnceWith('/api/distribution?property=wingspan')
   });
 
   it("shows data passed through API", async() => {

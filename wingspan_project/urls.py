@@ -22,10 +22,6 @@ from visualization import views
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', views.home_page, name='home'),
-    path('api/distribution/victory_points', views.victory_points_distribution
-         , name='victory_points_distribution'),
-    path('api/distribution/wingspan', views.wingspan_distribution,
-         name='wingspan_distribution'),
-    path('api/distribution/nest_capacity', views.nest_capacity_distribution,
-         name='nest_capacity_distribution')
+    path('api/distribution', views.distribution
+         , name='distribution'),
 ]
