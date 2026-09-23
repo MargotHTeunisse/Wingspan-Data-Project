@@ -18,7 +18,7 @@ def home_page(request):
 def distribution(request):
     # Use numpy to easily determine data for bar chart
     property = request.GET.get('property')
-    allowlist = ['victory_points', 'wingspan', 'nest_capacity']
+    allowlist = ['victory_points', 'wingspan', 'nest_capacity', 'nest_type']
 
     if property is None:
         return HttpResponseBadRequest(f"No property selected.")
@@ -26,12 +26,12 @@ def distribution(request):
     if not property in allowlist:
         return HttpResponseBadRequest("Distribution is not available for selected property.")
 
-    data = np.unique([getattr(bird, property) for bird in Bird.objects.all()],
-                               return_counts=True)
+    data = [getattr(bird, property) for bird in Bird.objects.all() if getattr(bird, property) is not None]
 
     # Convert to a format which JSON parser can understand
-    values = [int(v) for v in data[0]]
-    counts = [int(c) for c in data[1]]
+    values = list(set(data))
+    values.sort()
+    counts = [data.count(val) for val in values]
 
     return JsonResponse({'distribution': {'values': values, 'counts': counts}})
 
