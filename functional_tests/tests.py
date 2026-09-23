@@ -32,6 +32,35 @@ class NewVisitorTest(StaticLiveServerTestCase):
         opts.add_argument("--headless")
         self.browser = webdriver.Firefox(options=opts)
 
+        # Setup for test database
+        bird = Bird()
+        bird.scientific_name = "Limosa limosa"
+        bird.nl_name = "Grutto"
+        bird.nest_capacity = 2
+        bird.wingspan = 76
+        bird.worms = 1
+        bird.grains = 1
+        bird.lives_in_wetlands = True
+        bird.save()
+
+        bird = Bird()
+        bird.scientific_name = "Falco peregrinus"
+        bird.lives_in_grasslands = True
+        bird.lives_in_wetlands = True
+        bird.save()
+
+        bird = Bird()
+        bird.scientific_name = "Falco subbuteo"
+        bird.lives_in_forest = True
+        bird.lives_in_grasslands = True
+        bird.lives_in_wetlands = True
+        bird.save()
+
+        bird = Bird()
+        bird.scientific_name = "Accipiter gentilis"
+        bird.lives_in_forest = True
+        bird.save()
+
     def tearDown(self):
         self.browser.quit()
 
@@ -104,24 +133,6 @@ class NewVisitorTest(StaticLiveServerTestCase):
         self.assertEqual(chart_area.size["width"], search_area.size["width"])
 
     def test_can_look_up_birds(self):
-        # Setup for test database
-        bird = Bird()
-        bird.scientific_name = "Limosa limosa"
-        bird.nl_name = "Grutto"
-        bird.nest_capacity = 2
-        bird.wingspan = 76
-        bird.worms = 1
-        bird.grains = 1
-        bird.save()
-
-        bird = Bird()
-        bird.scientific_name = "Falco peregrinus"
-        bird.save()
-
-        bird = Bird()
-        bird.scientific_name = "Falco subbuteo"
-        bird.save()
-
         ##Someone visits the website.
         self.browser.get(self.live_server_url)
 
@@ -156,9 +167,11 @@ class NewVisitorTest(StaticLiveServerTestCase):
         self.assertIn("🇳🇱 Grutto", result.text)
 
         # They see that the black-tailed godwit:
+        # - lives in wetlands
         # - has a nest capacity of 2
         # - has a wingspan of 76cm
         # - eats bugs and grains, but not berries, fish or rodents.
+        self.assertIn("💧", result.text)
         self.assertIn("76cm", result.text)
         self.assertTrue(result.text.count("🥚") == 2)
         self.assertIn("🌾", result.text)
@@ -175,14 +188,81 @@ class NewVisitorTest(StaticLiveServerTestCase):
 
         self.wait_for_named_search_result("Falco")
 
-        #They expect all birds to have names starting with the genus 'Falco'.
+        #They expect all birds to have 'Falco' in their name.
         search_results = self.browser.find_elements(By.CLASS_NAME, "search_result")
-        self.assertTrue(all([result.text.startswith("Falco") for result in search_results]))
+        self.assertTrue(all(["Falco" in result.text for result in search_results]))
 
         # Falcons being common enough, they expect to find at least two.
         self.assertGreater(len(search_results), 1)
 
         # Satisfied with the game's collection of birds, they close the application.
+
+    def test_can_filter_search_by_bird_properties(self):
+        # A Wingspan player visits the site.
+        # They want to look up certain bird cards.
+        self.browser.get(self.live_server_url)
+
+        # They notice a search form.
+        search_form = self.browser.find_element(By.ID, "search_form")
+
+        # Bird names don't mean much to them; they rather want to search by bird properties.
+        # The search form has a filter function.
+        # They notice the filter contains at least three check boxes.
+        check_boxes = search_form.find_elements(By.XPATH, "//input[@type='checkbox']")
+        self.assertGreater(len(check_boxes), 2)
+
+        # These three check boxes are associated with the bird habitats: forest, grasslands and wetlands.
+        check_box_labels = [label.text for label in
+                            search_form.find_elements(By.XPATH, "//input[@type='checkbox']/parent::label")]
+
+        self.assertIn('Forest', check_box_labels)
+        self.assertIn('Grasslands', check_box_labels)
+        self.assertIn('Wetlands', check_box_labels)
+
+        # They are interested in forest birds, so they click this box.
+        forest_checkbox = search_form.find_element(By.NAME, "forest")
+        forest_checkbox.click()
+
+        # They make a search request, leaving the search field empty.
+        searchbox = search_form.find_element(By.ID, "search")
+        searchbox.send_keys(Keys.ENTER)
+
+        # After the results load, they see two birds:
+        # the Eurasian hobby and the Eurasian goshawk.
+        self.wait_for_named_search_result("Falco subbuteo")
+
+        search_results = self.browser.find_elements(By.CLASS_NAME, "search_result")
+        self.assertEqual(len(search_results), 2)
+        self.assertTrue(any(["Accipiter gentilis" in result.text for result in search_results]))
+
+        # They now try the grasslands filter.
+        # This gives them the two falcons.
+        grasslands_checkbox = self.browser.find_element(By.NAME, "grasslands")
+        grasslands_checkbox.click()
+        searchbox = self.browser.find_element(By.ID, "search")
+        searchbox.send_keys(Keys.ENTER)
+
+        self.wait_for_named_search_result("Falco peregrinus")
+
+        search_results = self.browser.find_elements(By.CLASS_NAME, "search_result")
+        self.assertEqual(len(search_results), 2)
+
+        # Finally, they click the wetlands filter.
+        # This gives them the two falcons and the black-tailed godwit,
+        # but not the goshawk.
+        wetlands_checkbox = self.browser.find_element(By.NAME, "wetlands")
+        wetlands_checkbox.click()
+
+        searchbox = self.browser.find_element(By.ID, "search")
+        searchbox.send_keys(Keys.ENTER)
+
+        self.wait_for_named_search_result("Limosa limosa")
+
+        search_results = self.browser.find_elements(By.CLASS_NAME, "search_result")
+        self.assertEqual(len(search_results), 3)
+        self.assertNotIn("Accipiter gentilis", [result.text for result in search_results])
+
+        # Satisfied, the user closes the app.
 
     def test_can_plot_1d_property_distribution(self):
         # An avid Wingspan player visits the site.

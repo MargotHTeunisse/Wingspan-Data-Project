@@ -12,15 +12,31 @@
 <main>
 
 <section id="search_area">
-    <form method="GET">
+    <form id="search_form" method="GET">
         <b style="font-size:24px">Bird Archive</b><br><br>
-    <input id="search" name="scientific_name" formmethod="get" placeholder="Enter scientific name...">
+    <input id="search" name="scientific_name" formmethod="get" placeholder="Enter scientific name..."><br><br>
+        <b>Habitat</b><br>
+        <label>
+            Forest<input type="checkbox" name="forest">
+        </label>
+        <label>
+            Grasslands<input type="checkbox" name="grasslands">
+        </label>
+        <label>
+            Wetlands<input type="checkbox" name="wetlands">
+        </label>
         {% csrf_token %}
     </form>
     <br>
 <div id="results_list" class="results_list">
     {%  for bird in search_results %}
     <div class="search_result">
+    <div style="text-align: left">
+        {% if bird.lives_in_forest %}🌲 {% endif %}
+        {% if bird.lives_in_grasslands%}🌿{% endif %}
+    {% if bird.lives_in_wetlands%}💧{% endif %}
+    <hr>
+    </div>
         <i>{{bird.scientific_name}}</i><br>
         🇳🇱 {{bird.nl_name}}<br>
         <span class="nest_capacity">{{bird.nest_capacity}}</span><br>
