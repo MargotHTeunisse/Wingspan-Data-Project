@@ -59,22 +59,38 @@
     <div>
     <label>
         <b style="font-size:24px">Property Distribution</b><br><br>
-        <select name="1D_plot_property_selection"
-                onchange="showChart(this.value, this.options[this.selectedIndex].text)">
-            <option selected disabled hidden value="">Inspect property...</option>
+
+        <select id="1D_plot_property_selection">
             <option value="victory_points">Victory points</option>
             <option value="nest_capacity">Nest capacity</option>
             <option value="wingspan">Wingspan (cm)</option>
             <option value="nest_type">Nest type</option>
         </select>
     </label>
+        <br><br>
+        <label>
+            Search results only
+            <input type="checkbox" id="search_only" disabled/>
+        </label>
+        <div style="text-align:right">
+        <input type="button" onclick="showChart()" value="Plot"/>
+        </div>
     </div>
     <br>
     <div class="canvas-container">
     <canvas id="chart" width="1000" height="1000"></canvas>
         </div>
 </section>
+    <script>
+        onload = () => {
+            let search_only_toggle = document.getElementById("search_only")
 
+            let search_results = document.getElementsByClassName("search_result")
+            if (search_results.length > 0) {
+                search_only_toggle.disabled = false;
+            }
+        }
+    </script>
 </main>
 </body>
 </html>

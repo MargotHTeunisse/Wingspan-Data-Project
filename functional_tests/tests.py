@@ -1,22 +1,21 @@
 import contextlib
-import os
 import shutil
 import tempfile
 import time
 from pathlib import Path
 
+from PIL import Image, ImageChops
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
-
 from selenium import webdriver
 from selenium.common import WebDriverException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.select import Select
-from PIL import Image, ImageChops
 
 from visualization.models import Bird
 
 MAX_WAIT = 2
+ANIMATION_DURATION = 0.5
 
 @contextlib.contextmanager
 def make_temp_directory():
@@ -41,12 +40,14 @@ class NewVisitorTest(StaticLiveServerTestCase):
         bird.worms = 1
         bird.grains = 1
         bird.lives_in_wetlands = True
+        bird.victory_points = 6
         bird.save()
 
         bird = Bird()
         bird.scientific_name = "Falco peregrinus"
         bird.lives_in_grasslands = True
         bird.lives_in_wetlands = True
+        bird.victory_points = 5
         bird.save()
 
         bird = Bird()
@@ -54,11 +55,13 @@ class NewVisitorTest(StaticLiveServerTestCase):
         bird.lives_in_forest = True
         bird.lives_in_grasslands = True
         bird.lives_in_wetlands = True
+        bird.victory_points = 4
         bird.save()
 
         bird = Bird()
         bird.scientific_name = "Accipiter gentilis"
         bird.lives_in_forest = True
+        bird.victory_points = 5
         bird.save()
 
     def tearDown(self):
@@ -86,6 +89,10 @@ class NewVisitorTest(StaticLiveServerTestCase):
 
                 diff = ImageChops.difference(new_img, old_img)
                 self.assertIsNotNone(diff.getbbox())
+
+                # If chart has changed, wait set time for animation to load
+                time.sleep(ANIMATION_DURATION)
+                chart.screenshot(new_img_src)
                 return
             except (AssertionError, WebDriverException):
                 if time.time() - start_time > MAX_WAIT:
@@ -228,7 +235,7 @@ class NewVisitorTest(StaticLiveServerTestCase):
         searchbox.send_keys(Keys.ENTER)
 
         # After the results load, they see two birds:
-        # the Eurasian hobby and the Eurasian goshawk.
+        # the Eurasian hobby and the Northern goshawk.
         self.wait_for_named_search_result("Falco subbuteo")
 
         search_results = self.browser.find_elements(By.CLASS_NAME, "search_result")
@@ -275,9 +282,8 @@ class NewVisitorTest(StaticLiveServerTestCase):
         with make_temp_directory() as temp_dir_name:
             temp_dir = Path(temp_dir_name)
 
-            # They notice a select menu that allows them to see how the selected property is distributed.
-            select_element = self.browser.find_element(By.NAME, "1D_plot_property_selection")
-            self.assertIn("Inspect property...", select_element.text)
+            # They notice a select menu.
+            select_element = self.browser.find_element(By.TAG_NAME, "select")
 
             # They also notice a blank charting area.
             chart = self.browser.find_element(By.ID, "chart")
@@ -289,9 +295,11 @@ class NewVisitorTest(StaticLiveServerTestCase):
             img_blank = Image.open(src_blank).convert('RGB')
 
             # They want to know how victory points are distributed over birds.
-            # They select the 'Victory points' property.
+            # They select the 'Victory points' property and click the 'Plot' button.
             select = Select(select_element)
             select.select_by_visible_text('Victory points')
+            plot_button = self.browser.find_element(By.XPATH, "//input[@type='button' and @value='Plot']")
+            plot_button.click()
 
             # They wait for the chart to change.
             src_victory_points = str(temp_dir / "victory_points.png")
@@ -306,6 +314,7 @@ class NewVisitorTest(StaticLiveServerTestCase):
 
             # Satisfied with the victory points distribution, they also check the distribution of nest capacities.
             select.select_by_visible_text('Nest capacity')
+            plot_button.click()
 
             # They wait again for the chart to change.
             src_nest_capacity = str(temp_dir / "nest_capacity.png")
@@ -316,4 +325,37 @@ class NewVisitorTest(StaticLiveServerTestCase):
             diff = ImageChops.difference(img_nest_capacity, img_blank)
             self.assertIsNotNone(diff.getbbox())
 
+            # They see a toggle to only plot search results.
+            # Since they haven't made a search yet, the toggle is disabled.
+            search_only_toggle = self.browser.find_element(By.XPATH,
+                                                           "//input[@type='checkbox' and @id='search_only']")
+            self.assertTrue(search_only_toggle.get_attribute('disabled'))
+
+            # They make a search, then toggle search-only mode.
+            searchbox = self.browser.find_element(By.ID, "search")
+            searchbox.send_keys("falco")
+            searchbox.send_keys(Keys.ENTER)
+
+            self.wait_for_named_search_result("Falco peregrinus")
+            search_only_toggle = self.browser.find_element(By.XPATH,
+                                                           "//input[@type='checkbox' and @id='search_only']")
+            self.assertFalse(search_only_toggle.get_attribute('disabled'))
+            search_only_toggle.click()
+
+            #They make a victory points plot for the search results.
+            select_element = self.browser.find_element(By.TAG_NAME, "select")
+            select = Select(select_element)
+            select.select_by_visible_text('Victory points')
+            plot_button = self.browser.find_element(By.XPATH, "//input[@type='button' and @value='Plot']")
+            plot_button.click()
+
+            src_victory_points_search_only = str(temp_dir / "victory_points_search_only")
+            self.wait_for_chart_change(img_blank, src_victory_points_search_only)
+            img_victory_points_search_only = Image.open(src_victory_points_search_only).convert('RGB')
+
+            # The plot is different for the search results than for all birds.
+            diff = ImageChops.difference(img_victory_points_search_only, img_victory_points)
+            self.assertIsNotNone(diff.getbbox())
+
         # Satisfied, the user closes the app.
+

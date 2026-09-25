@@ -1,13 +1,24 @@
-async function showChart(property, label) {
-    let context = document.getElementById("chart")
+async function showChart() {
+    let select_menu = document.getElementById("1D_plot_property_selection")
+    let property = select_menu.value
+    let label = select_menu.options[select_menu.selectedIndex].text
 
-    let distribution = await fetch('/api/distribution?property='+property)
-        .then(response => response.json())
-        .then(response => response.distribution)
+    let context = document.getElementById("chart")
 
     let chart = Chart.getChart("chart")
     if (chart !== undefined) {
         chart.destroy()
+    }
+
+    let distribution = {values: null, counts: null}
+    if (document.getElementById("search_only").checked) {
+        distribution.values = []
+        distribution.counts = []
+    }
+    else {
+    distribution = await fetch('/api/distribution?property=' + property)
+            .then(response => response.json())
+            .then(response => response.distribution)
     }
 
     let dataIsNumerical = Object.values(distribution.values).every(val => isFinite(val))
@@ -22,6 +33,9 @@ async function showChart(property, label) {
                 }]
             },
             options: {
+                animation: {
+                    duration: 500
+                },
                 scales: {
                     y: {
                         title: {
@@ -41,6 +55,11 @@ async function showChart(property, label) {
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: {
+                    title: {
+                        display: false,
+                        text: "Property distribution (" + distribution.counts.reduce((a, b) => a+b, 0)
+                            + " birds)"
+                    },
                  legend: {
                     display: false
                  }
