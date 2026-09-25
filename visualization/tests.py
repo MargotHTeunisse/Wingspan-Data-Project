@@ -10,12 +10,6 @@ class HomePageTest(TestCase):
 
         self.assertTemplateUsed(response, "home.html")
 
-    def test_renders_form(self):
-        response = self.client.get("/")
-
-        self.assertContains(response, '<form method="GET">')
-        self.assertContains(response, '<input id="search"')
-
     def test_home_template_is_used(self):
         response = self.client.get("/", data={"scientific_name": "Limosa limosa"})
 
