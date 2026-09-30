@@ -14,8 +14,20 @@ async function showChart() {
     if (document.getElementById("search_only").checked) {
     }
     else {
-        let birds = await fetch('/api/all-birds')
+        let bird_data = await fetch('/api/all-birds')
             .then(response => response.json())
+
+        let property_data = {}
+        for (let index in bird_data) {
+            let val = bird_data[index][property]
+            if (val === undefined) {
+                throw("Property is undefined for one or more birds.")
+            }
+            property_data[val] = property_data[val]? property_data[val] + 1 : 1
+        }
+
+        distribution.values = Object.keys(property_data)
+        distribution.counts = Object.values(property_data)
     }
 
     let dataIsNumerical = Object.values(distribution.values).every(val => isFinite(val))

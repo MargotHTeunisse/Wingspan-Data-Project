@@ -35,26 +35,5 @@ class BirdList(generics.ListCreateAPIView):
     queryset = Bird.objects.all()
     serializer_class = BirdSerializer
 
-def distribution(request):
-    # Use numpy to easily determine data for bar chart
-    bird_property = request.GET.get('property')
-    allowlist = ['victory_points', 'wingspan', 'nest_capacity', 'nest_type']
-
-    if bird_property is None:
-        return HttpResponseBadRequest(f"No property selected.")
-
-    if not bird_property in allowlist:
-        return HttpResponseBadRequest("Distribution is not available for selected property.")
-
-    data = [getattr(bird, bird_property) for bird in Bird.objects.all()
-            if getattr(bird, bird_property) is not None]
-
-    # Convert to a format which JSON parser can understand
-    values = list(set(data))
-    values.sort()
-    counts = [data.count(val) for val in values]
-
-    return JsonResponse({'distribution': {'values': values, 'counts': counts}})
-
 def stub(request):
     return JsonResponse({})

@@ -5,10 +5,10 @@ describe("Distribution chart", () => {
   let fetchSpy;
 
   let test_data = [
-          {'scientific_name': 'Limosa limosa', 'victory_points': 6, 'wingspan':76},
-          {'scientific_name': 'Falco subbuteo', 'victory_points': 4, 'wingspan':75},
-          {'scientific_name': 'Falco peregrinus', 'victory_points': 5, 'wingspan':104},
-          {'scientific_name': 'Accipiter gentilis', 'victory_points': 5, 'wingspan':106}
+          {'scientific_name': 'Limosa limosa', 'victory_points': 6, 'wingspan':76, 'nest_type':'GRND'},
+          {'scientific_name': 'Falco subbuteo', 'victory_points': 4, 'wingspan':75, 'nest_type':'PLTF'},
+          {'scientific_name': 'Falco peregrinus', 'victory_points': 5, 'wingspan':104, 'nest_type':'PLTF'},
+          {'scientific_name': 'Accipiter gentilis', 'victory_points': 5, 'wingspan':106, 'nest_type':'PLTF'}
         ]
 
   beforeEach(() => {
@@ -78,14 +78,11 @@ describe("Distribution chart", () => {
   });
 
   it("shows victory points data passed through API when victory points property is selected", async() => {
-    fetchSpy.and.returnValue(
-        Promise.resolve(new Response(JSON.stringify(test_data)))
-    )
     await showChart()
 
     let chart = Chart.getChart("chart")
 
-    expect(chart.config.data.labels).toEqual([4, 5, 6])
+    expect(chart.config.data.labels).toEqual(['4', '5', '6'])
     expect(chart.config.data.datasets[0].data).toEqual([1, 2, 1])
   });
 
@@ -99,15 +96,16 @@ describe("Distribution chart", () => {
 
       let chart = Chart.getChart("chart")
 
-      expect(chart.config.data.labels).toEqual([75, 76, 104, 106])
+      expect(chart.config.data.labels).toEqual(['75', '76', '104', '106'])
     expect(chart.config.data.datasets[0].data).toEqual([1, 1, 1, 1])
   });
 
   it("should have categorical x-axis for qualitative data", async() => {
-    fetchSpy.and.returnValue(
-        Promise.resolve(
-            new Response(JSON.stringify({distribution: {values: ['A', 'B', 'C'], counts:[3, 2, 1]}})))
-      )
+    let option = document.createElement("option")
+    option.value = "nest_type"
+    option.selected = true
+    select_menu.appendChild(option)
+
     await showChart()
     let chart = Chart.getChart("chart")
 
@@ -115,10 +113,6 @@ describe("Distribution chart", () => {
   });
 
   it("should have linear x-axis for quantitative data", async() => {
-    fetchSpy.and.returnValue(
-        Promise.resolve(
-            new Response(JSON.stringify({distribution: {values: [4, 5, 6], counts:[3, 2, 1]}})))
-      )
     await showChart()
     let chart = Chart.getChart("chart")
 
