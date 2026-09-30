@@ -2,8 +2,10 @@ import operator as op
 
 from django.http import JsonResponse, HttpResponseBadRequest
 from django.shortcuts import render
+from rest_framework import generics
 
 from visualization.models import Bird
+from visualization.serializers import BirdSerializer
 
 
 # Create your views here.
@@ -28,6 +30,10 @@ def home_page(request):
                                        and filter_applies(bird)]
                                       if query is not None
                                       else [])})
+
+class BirdList(generics.ListCreateAPIView):
+    queryset = Bird.objects.all()
+    serializer_class = BirdSerializer
 
 def distribution(request):
     # Use numpy to easily determine data for bar chart
