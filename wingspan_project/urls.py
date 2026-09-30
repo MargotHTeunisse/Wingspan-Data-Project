@@ -22,6 +22,6 @@ from visualization import views
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', views.home_page, name='home'),
-    path('api/distribution', views.distribution
-         , name='distribution'),
+    path('api/all-birds', views.stub
+         , name='all-birds'),
 ]

@@ -10,15 +10,12 @@ async function showChart() {
         chart.destroy()
     }
 
-    let distribution = {values: null, counts: null}
+    let distribution = {values:[], counts:[]}
     if (document.getElementById("search_only").checked) {
-        distribution.values = []
-        distribution.counts = []
     }
     else {
-    distribution = await fetch('/api/distribution?property=' + property)
+        let birds = await fetch('/api/all-birds')
             .then(response => response.json())
-            .then(response => response.distribution)
     }
 
     let dataIsNumerical = Object.values(distribution.values).every(val => isFinite(val))

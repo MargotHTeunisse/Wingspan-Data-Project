@@ -4,6 +4,13 @@ describe("Distribution chart", () => {
   let search_only_toggle;
   let fetchSpy;
 
+  let test_data = [
+          {'scientific_name': 'Limosa limosa', 'victory_points': 6, 'wingspan':76},
+          {'scientific_name': 'Falco subbuteo', 'victory_points': 4, 'wingspan':75},
+          {'scientific_name': 'Falco peregrinus', 'victory_points': 5, 'wingspan':104},
+          {'scientific_name': 'Accipiter gentilis', 'victory_points': 5, 'wingspan':106}
+        ]
+
   beforeEach(() => {
     // Like in real template, add a container to set the chart size; keep small for tests.
     container = document.createElement("div")
@@ -25,9 +32,9 @@ describe("Distribution chart", () => {
     search_only_toggle.type = "checkbox"
     document.body.appendChild(search_only_toggle)
 
-    // Set a mock API call
+    // Set a mock API call using test data
     fetchSpy = spyOn(window, 'fetch').and.returnValue(
-        Promise.resolve(new Response(JSON.stringify({distribution: {values: [], counts:[]}})))
+        Promise.resolve(new Response(JSON.stringify(test_data)))
   )
   });
 
@@ -64,13 +71,25 @@ describe("Distribution chart", () => {
     expect(chart.config.options.scales.x.title.display).toEqual(true)
   });
 
-  it("fetches victory points distribution when requested", async() => {
+  it("fetches all birds when search-only mode is not toggled", async() => {
     await showChart()
 
-    expect(fetchSpy).toHaveBeenCalledOnceWith('/api/distribution?property=victory_points')
+    expect(fetchSpy).toHaveBeenCalledOnceWith('/api/all-birds')
   });
 
-  it("fetches wingspan distribution when requested", async() => {
+  it("shows victory points data passed through API when victory points property is selected", async() => {
+    fetchSpy.and.returnValue(
+        Promise.resolve(new Response(JSON.stringify(test_data)))
+    )
+    await showChart()
+
+    let chart = Chart.getChart("chart")
+
+    expect(chart.config.data.labels).toEqual([4, 5, 6])
+    expect(chart.config.data.datasets[0].data).toEqual([1, 2, 1])
+  });
+
+    it("shows wingspan data passed through API when wingspan property is selected", async() => {
     let option = document.createElement("option")
     option.value = "wingspan"
     option.selected = true
@@ -78,19 +97,10 @@ describe("Distribution chart", () => {
 
     await showChart()
 
-    expect(fetchSpy).toHaveBeenCalledOnceWith('/api/distribution?property=wingspan')
-  });
+      let chart = Chart.getChart("chart")
 
-  it("shows data passed through API", async() => {
-    fetchSpy.and.returnValue(
-        Promise.resolve(new Response(JSON.stringify({distribution: {values: [4, 5, 6], counts:[3, 2, 1]}})))
-    )
-    await showChart()
-
-    let chart = Chart.getChart("chart")
-
-    expect(chart.config.data.labels).toEqual([4, 5, 6])
-    expect(chart.config.data.datasets[0].data).toEqual([3, 2, 1])
+      expect(chart.config.data.labels).toEqual([75, 76, 104, 106])
+    expect(chart.config.data.datasets[0].data).toEqual([1, 1, 1, 1])
   });
 
   it("should have categorical x-axis for qualitative data", async() => {
