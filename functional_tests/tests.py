@@ -349,7 +349,7 @@ class NewVisitorTest(StaticLiveServerTestCase):
             plot_button = self.browser.find_element(By.XPATH, "//input[@type='button' and @value='Plot']")
             plot_button.click()
 
-            src_victory_points_search_only = str(temp_dir / "victory_points_search_only")
+            src_victory_points_search_only = str(temp_dir / "victory_points_search_only.png")
             self.wait_for_chart_change(img_blank, src_victory_points_search_only)
             img_victory_points_search_only = Image.open(src_victory_points_search_only).convert('RGB')
 
