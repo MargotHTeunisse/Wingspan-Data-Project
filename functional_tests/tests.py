@@ -67,37 +67,29 @@ class NewVisitorTest(StaticLiveServerTestCase):
     def tearDown(self):
         self.browser.quit()
 
-    def wait_for_named_search_result(self, name:str):
+    @staticmethod
+    def wait_for(assertion):
         start_time = time.time()
         while True:
             try:
-                search_results = self.browser.find_elements(By.CLASS_NAME, "search_result")
-                self.assertTrue(any([name in result.text for result in search_results]))
+                assertion()
                 return
             except (AssertionError, WebDriverException):
                 if time.time() - start_time > MAX_WAIT:
                     raise
                 time.sleep(0.2)
 
-    def wait_for_chart_change(self, old_img:Image, new_img_src:str):
-        start_time = time.time()
-        while True:
-            try:
-                chart = self.browser.find_element(By.ID, "chart")
-                chart.screenshot(new_img_src)
-                new_img = Image.open(new_img_src).convert('RGB')
+    def assert_chart_changed(self, old_img:Image, new_img_src:str):
+        chart = self.browser.find_element(By.ID, "chart")
+        chart.screenshot(new_img_src)
+        new_img = Image.open(new_img_src).convert('RGB')
 
-                diff = ImageChops.difference(new_img, old_img)
-                self.assertIsNotNone(diff.getbbox())
+        diff = ImageChops.difference(new_img, old_img)
+        self.assertIsNotNone(diff.getbbox())
 
-                # If chart has changed, wait set time for animation to load
-                time.sleep(ANIMATION_DURATION)
-                chart.screenshot(new_img_src)
-                return
-            except (AssertionError, WebDriverException):
-                if time.time() - start_time > MAX_WAIT:
-                    raise
-                time.sleep(0.2)
+        # Wait a set time for animation to load
+        time.sleep(ANIMATION_DURATION)
+        chart.screenshot(new_img_src)
 
     def test_layout_and_styling(self):
         #Someone goes to the home page.
@@ -160,12 +152,13 @@ class NewVisitorTest(StaticLiveServerTestCase):
         searchbox.send_keys(Keys.ENTER)
 
         # They wait for the results to load.
-        self.wait_for_named_search_result("Limosa limosa")
+        self.wait_for(
+             lambda: self.assertEqual(1, len(self.browser.find_elements(By.CLASS_NAME, "search_result")))
+        )
 
-        # They expect to see the black-tailed godwit as the only search result,
-        # since they entered the full species name.
+        # They expect to see the black-tailed godwit as the only search result.
         search_results = self.browser.find_elements(By.CLASS_NAME, "search_result")
-        self.assertEqual(len(search_results), 1)
+        self.assertIn("Limosa limosa", search_results[0].text)
 
         # To check that their favourite bird is represented accurately,
         # they check the bird properties.
@@ -193,7 +186,8 @@ class NewVisitorTest(StaticLiveServerTestCase):
         searchbox.send_keys("falco")
         searchbox.send_keys(Keys.ENTER)
 
-        self.wait_for_named_search_result("Falco")
+        self.wait_for(lambda:   self.assertTrue(any(["Falco" in result.text for result
+                             in self.browser.find_elements(By.CLASS_NAME, "search_result")])))
 
         #They expect all birds to have 'Falco' in their name.
         search_results = self.browser.find_elements(By.CLASS_NAME, "search_result")
@@ -236,7 +230,8 @@ class NewVisitorTest(StaticLiveServerTestCase):
 
         # After the results load, they see two birds:
         # the Eurasian hobby and the Northern goshawk.
-        self.wait_for_named_search_result("Falco subbuteo")
+        self.wait_for(lambda: self.assertTrue(any(["Falco subbuteo" in result.text for result
+                             in self.browser.find_elements(By.CLASS_NAME, "search_result")])))
 
         search_results = self.browser.find_elements(By.CLASS_NAME, "search_result")
         self.assertEqual(len(search_results), 2)
@@ -249,7 +244,8 @@ class NewVisitorTest(StaticLiveServerTestCase):
         searchbox = self.browser.find_element(By.ID, "search")
         searchbox.send_keys(Keys.ENTER)
 
-        self.wait_for_named_search_result("Falco peregrinus")
+        self.wait_for(lambda: self.assertTrue(any(["Falco peregrinus" in result.text for result
+                             in self.browser.find_elements(By.CLASS_NAME, "search_result")])))
 
         search_results = self.browser.find_elements(By.CLASS_NAME, "search_result")
         self.assertEqual(len(search_results), 2)
@@ -263,7 +259,8 @@ class NewVisitorTest(StaticLiveServerTestCase):
         searchbox = self.browser.find_element(By.ID, "search")
         searchbox.send_keys(Keys.ENTER)
 
-        self.wait_for_named_search_result("Limosa limosa")
+        self.wait_for(lambda: self.assertTrue(any(["Limosa limosa" in result.text for result
+                             in self.browser.find_elements(By.CLASS_NAME, "search_result")])))
 
         search_results = self.browser.find_elements(By.CLASS_NAME, "search_result")
         self.assertEqual(len(search_results), 3)
@@ -303,7 +300,7 @@ class NewVisitorTest(StaticLiveServerTestCase):
 
             # They wait for the chart to change.
             src_victory_points = str(temp_dir / "victory_points.png")
-            self.wait_for_chart_change(img_blank, src_victory_points)
+            self.wait_for(lambda: self.assert_chart_changed(img_blank, src_victory_points))
             img_victory_points = Image.open(src_victory_points).convert('RGB')
 
             # The canvas maintains its size after the chart has changed.
@@ -318,7 +315,7 @@ class NewVisitorTest(StaticLiveServerTestCase):
 
             # They wait again for the chart to change.
             src_nest_capacity = str(temp_dir / "nest_capacity.png")
-            self.wait_for_chart_change(img_victory_points, src_nest_capacity)
+            self.wait_for(lambda:self.assert_chart_changed(img_victory_points, src_nest_capacity))
             img_nest_capacity = Image.open(src_nest_capacity).convert('RGB')
 
              # The chart having changed, they check that it is not blank.
@@ -336,7 +333,8 @@ class NewVisitorTest(StaticLiveServerTestCase):
             searchbox.send_keys("falco")
             searchbox.send_keys(Keys.ENTER)
 
-            self.wait_for_named_search_result("Falco peregrinus")
+            self.wait_for(lambda: self.assertTrue(any(["Falco peregrinus" in result.text for result
+                             in self.browser.find_elements(By.CLASS_NAME, "search_result")])))
             search_only_toggle = self.browser.find_element(By.XPATH,
                                                            "//input[@type='checkbox' and @id='search_only']")
             self.assertFalse(search_only_toggle.get_attribute('disabled'))
@@ -350,7 +348,7 @@ class NewVisitorTest(StaticLiveServerTestCase):
             plot_button.click()
 
             src_victory_points_search_only = str(temp_dir / "victory_points_search_only.png")
-            self.wait_for_chart_change(img_blank, src_victory_points_search_only)
+            self.wait_for(lambda: self.assert_chart_changed(img_blank, src_victory_points_search_only))
             img_victory_points_search_only = Image.open(src_victory_points_search_only).convert('RGB')
 
             # The plot is different for the search results than for all birds.
