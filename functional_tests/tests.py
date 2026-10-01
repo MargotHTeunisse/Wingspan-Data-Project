@@ -322,38 +322,85 @@ class NewVisitorTest(StaticLiveServerTestCase):
             diff = ImageChops.difference(img_nest_capacity, img_blank)
             self.assertIsNotNone(diff.getbbox())
 
-            # They see a toggle to only plot search results.
-            # Since they haven't made a search yet, the toggle is disabled.
-            search_only_toggle = self.browser.find_element(By.XPATH,
-                                                           "//input[@type='checkbox' and @id='search_only']")
-            self.assertTrue(search_only_toggle.get_attribute('disabled'))
+        # Satisfied, the user closes the app.
 
-            # They make a search, then toggle search-only mode.
-            searchbox = self.browser.find_element(By.ID, "search")
-            searchbox.send_keys("falco")
-            searchbox.send_keys(Keys.ENTER)
+    def test_can_plot_in_search_only_mode(self):
+        # An avid Wingspan player visits the website.
+        # They want to improve their forest engine,
+        # and are therefore interested in the property distribution of forest birds.
+        self.browser.get(self.live_server_url)
 
-            self.wait_for(lambda: self.assertTrue(any(["Falco peregrinus" in result.text for result
-                             in self.browser.find_elements(By.CLASS_NAME, "search_result")])))
-            search_only_toggle = self.browser.find_element(By.XPATH,
-                                                           "//input[@type='checkbox' and @id='search_only']")
-            self.assertFalse(search_only_toggle.get_attribute('disabled'))
-            search_only_toggle.click()
+        # They see a toggle to only plot search results.
+        # This is what they are looking for, but the toggle is currently disabled,
+        # since they have not made a search yet.
+        search_only_toggle = self.browser.find_element(By.XPATH,
+                                                       "//input[@type='checkbox' and @id='search_only']")
+        self.assertTrue(search_only_toggle.get_attribute('disabled'))
 
-            #They make a victory points plot for the search results.
+        # They try to make an empty search, and find they can now toggle search-only mode.
+        searchbox = self.browser.find_element(By.ID, "search")
+        searchbox.send_keys(Keys.ENTER)
+
+        self.wait_for(lambda: self.assertFalse(self.browser.find_element(By.XPATH,
+                                                       "//input[@type='checkbox' and @id='search_only']")
+                                               .get_attribute('disabled')))
+
+        with make_temp_directory() as temp_dir_name:
+            temp_dir = Path(temp_dir_name)
+
+            chart = self.browser.find_element(By.ID, "chart")
+            src_blank = str(temp_dir / "blank.png")
+            chart.screenshot(src_blank)
+            img_blank = Image.open(src_blank).convert('RGB')
+
+            # They request a victory points plot, and wait for the chart to change.
             select_element = self.browser.find_element(By.TAG_NAME, "select")
             select = Select(select_element)
             select.select_by_visible_text('Victory points')
             plot_button = self.browser.find_element(By.XPATH, "//input[@type='button' and @value='Plot']")
             plot_button.click()
 
+            src_victory_points = str(temp_dir/ "victory_points.png")
+            self.wait_for(lambda: self.assert_chart_changed(img_blank, src_victory_points))
+            img_victory_points = Image.open(src_victory_points).convert('RGB')
+
+            # Comparing the two modes,
+            # they find that search-only mode does not change the plot,
+            # because they have not filtered out any birds.
+            search_only_toggle.click()
+            plot_button.click()
+
             src_victory_points_search_only = str(temp_dir / "victory_points_search_only.png")
-            self.wait_for(lambda: self.assert_chart_changed(img_blank, src_victory_points_search_only))
+            self.wait_for(lambda: self.assert_chart_changed(img_victory_points, src_victory_points_search_only))
             img_victory_points_search_only = Image.open(src_victory_points_search_only).convert('RGB')
 
-            # The plot is different for the search results than for all birds.
+            diff = ImageChops.difference(img_victory_points_search_only, img_victory_points)
+            self.assertIsNone(diff.getbbox())
+
+            # They make a search again, this time toggling the filter for the forest habitat.
+            forest_checkbox = self.browser.find_element(By.NAME, "forest")
+            forest_checkbox.click()
+
+            searchbox = self.browser.find_element(By.ID, "search")
+            searchbox.send_keys(Keys.ENTER)
+
+            # They wait until they see the non-forest birds disappear from the search results,
+            # then make another plot in search-only mode.
+            self.wait_for(lambda: self.assertTrue(any(["Limosa limosa" not in result.text for result
+                                                       in self.browser.find_elements(By.CLASS_NAME, "search_result")])))
+
+            plot_button = self.browser.find_element(By.XPATH, "//input[@type='button' and @value='Plot']")
+            search_only_toggle = self.browser.find_element(By.XPATH,
+                                                           "//input[@type='checkbox' and @id='search_only']")
+            search_only_toggle.click()
+            plot_button.click()
+
+            # They now see that the plot has changed.
+            src_victory_points_search_only = str(temp_dir / "victory_points_search_only.png")
+            self.wait_for(lambda: self.assert_chart_changed(img_victory_points, src_victory_points_search_only))
+            img_victory_points_search_only = Image.open(src_victory_points_search_only).convert('RGB')
+
             diff = ImageChops.difference(img_victory_points_search_only, img_victory_points)
             self.assertIsNotNone(diff.getbbox())
 
         # Satisfied, the user closes the app.
-
