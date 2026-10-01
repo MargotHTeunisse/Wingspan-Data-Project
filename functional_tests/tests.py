@@ -367,6 +367,8 @@ class NewVisitorTest(StaticLiveServerTestCase):
             # Comparing the two modes,
             # they find that search-only mode does not change the plot,
             # because they have not filtered out any birds.
+            search_only_toggle = self.browser.find_element(By.XPATH,
+                                                           "//input[@type='checkbox' and @id='search_only']")
             search_only_toggle.click()
             plot_button.click()
 
