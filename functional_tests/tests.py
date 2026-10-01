@@ -330,28 +330,29 @@ class NewVisitorTest(StaticLiveServerTestCase):
         # and are therefore interested in the property distribution of forest birds.
         self.browser.get(self.live_server_url)
 
-        # They see a toggle to only plot search results.
-        # This is what they are looking for, but the toggle is currently disabled,
-        # since they have not made a search yet.
-        search_only_toggle = self.browser.find_element(By.XPATH,
-                                                       "//input[@type='checkbox' and @id='search_only']")
-        self.assertTrue(search_only_toggle.get_attribute('disabled'))
-
-        # They try to make an empty search, and find they can now toggle search-only mode.
-        searchbox = self.browser.find_element(By.ID, "search")
-        searchbox.send_keys(Keys.ENTER)
-
-        self.wait_for(lambda: self.assertFalse(self.browser.find_element(By.XPATH,
-                                                       "//input[@type='checkbox' and @id='search_only']")
-                                               .get_attribute('disabled')))
-
         with make_temp_directory() as temp_dir_name:
             temp_dir = Path(temp_dir_name)
 
+            # They notice a blank charting area.
             chart = self.browser.find_element(By.ID, "chart")
             src_blank = str(temp_dir / "blank.png")
             chart.screenshot(src_blank)
             img_blank = Image.open(src_blank).convert('RGB')
+
+            # They see a toggle to only plot search results.
+            # This is what they are looking for, but the toggle is currently disabled,
+            # since they have not made a search yet.
+            search_only_toggle = self.browser.find_element(By.XPATH,
+                                                       "//input[@type='checkbox' and @id='search_only']")
+            self.assertTrue(search_only_toggle.get_attribute('disabled'))
+
+            # They try to make an empty search, and find they can now toggle search-only mode.
+            searchbox = self.browser.find_element(By.ID, "search")
+            searchbox.send_keys(Keys.ENTER)
+
+            self.wait_for(lambda: self.assertFalse(self.browser.find_element(By.XPATH,
+                                                       "//input[@type='checkbox' and @id='search_only']")
+                                               .get_attribute('disabled')))
 
             # They request a victory points plot, and wait for the chart to change.
             select_element = self.browser.find_element(By.TAG_NAME, "select")
