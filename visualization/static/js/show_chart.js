@@ -13,8 +13,7 @@ async function showChart() {
     let distribution = {values:null, counts:null}
     let bird_data
     if (document.getElementById("search_only").checked) {
-        bird_data = await fetch('/api/all-birds')
-            .then(response => response.json())
+        bird_data = JSON.parse(document.getElementById("search_results_json").text)
     }
     else {
         bird_data = await fetch('/api/all-birds')

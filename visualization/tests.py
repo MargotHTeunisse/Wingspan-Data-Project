@@ -33,6 +33,19 @@ class HomePageTest(TestCase):
 
         self.assertTrue(bird in response.context['search_results'])
 
+    def test_can_retrieve_bird_json(self):
+        bird = Bird()
+        bird.scientific_name = "Limosa limosa"
+        bird.save()
+
+        bird = Bird()
+        bird.scientific_name = "Falco peregrinus"
+        bird.save()
+
+        response = self.client.get("/", data={"scientific_name": ""})
+
+        self.assertIn('scientific_name', response.context['search_results_json'][0])
+
 class DistributionAPITest(TestCase):
     def test_can_retrieve_empty_bird_data(self):
         response = self.client.get('/api/all-birds',

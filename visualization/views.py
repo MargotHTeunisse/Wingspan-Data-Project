@@ -1,6 +1,6 @@
 import operator as op
 
-from django.http import JsonResponse, HttpResponseBadRequest
+from django.http import JsonResponse
 from django.shortcuts import render
 from rest_framework import generics
 
@@ -24,12 +24,15 @@ def home_page(request):
 
     query = request.GET.get("scientific_name")
 
-    return render(request, "home.html",
-                  {"search_results": ([bird for bird in Bird.objects.all()
+    search_results = ([bird for bird in Bird.objects.all()
                                        if op.contains(bird.scientific_name.upper(), query.upper())
                                        and filter_applies(bird)]
                                       if query is not None
-                                      else [])})
+                                      else [])
+
+    return render(request, "home.html",
+                  {"search_results": search_results,
+                   "search_results_json": BirdSerializer(search_results, many=True).data})
 
 class BirdList(generics.ListCreateAPIView):
     queryset = Bird.objects.all()

@@ -2,6 +2,7 @@ describe("Distribution chart", () => {
   let container;
   let select_menu;
   let search_only_toggle;
+  let search_results_json;
   let fetchSpy;
 
   let test_data = [
@@ -9,6 +10,11 @@ describe("Distribution chart", () => {
           {'scientific_name': 'Falco subbuteo', 'victory_points': 4, 'wingspan':75, 'nest_type':'PLTF'},
           {'scientific_name': 'Falco peregrinus', 'victory_points': 5, 'wingspan':104, 'nest_type':'PLTF'},
           {'scientific_name': 'Accipiter gentilis', 'victory_points': 5, 'wingspan':106, 'nest_type':'PLTF'}
+        ]
+
+  let test_search_data = [
+          {'scientific_name': 'Falco subbuteo', 'victory_points': 4, 'wingspan':75, 'nest_type':'PLTF'},
+          {'scientific_name': 'Falco peregrinus', 'victory_points': 5, 'wingspan':104, 'nest_type':'PLTF'},
         ]
 
   beforeEach(() => {
@@ -32,6 +38,11 @@ describe("Distribution chart", () => {
     search_only_toggle.type = "checkbox"
     document.body.appendChild(search_only_toggle)
 
+    search_results_json = document.createElement("script")
+    search_results_json.id = "search_results_json"
+    search_results_json.text = JSON.stringify(test_search_data)
+    document.body.appendChild(search_results_json)
+
     // Set a mock API call using test data
     fetchSpy = spyOn(window, 'fetch').and.returnValue(
         Promise.resolve(new Response(JSON.stringify(test_data)))
@@ -42,6 +53,7 @@ describe("Distribution chart", () => {
     container.remove()
     search_only_toggle.remove()
     select_menu.remove()
+    search_results_json.remove()
     }
   )
 
@@ -77,16 +89,35 @@ describe("Distribution chart", () => {
     expect(fetchSpy).toHaveBeenCalledOnceWith('/api/all-birds')
   });
 
-  it("shows victory points data passed through API when victory points property is selected", async() => {
+  it("does not call API when search-only mode is toggled", async() => {
+    search_only_toggle.click()
+
+    await showChart()
+
+    expect(fetchSpy).toHaveBeenCalledTimes(0)
+  })
+
+  it("shows victory points data from API when search-only is not toggled", async() => {
     await showChart()
 
     let chart = Chart.getChart("chart")
 
     expect(chart.config.data.labels).toEqual(['4', '5', '6'])
     expect(chart.config.data.datasets[0].data).toEqual([1, 2, 1])
-  });
+  })
 
-    it("shows wingspan data passed through API when wingspan property is selected", async() => {
+  it("shows victory points data from DOM when search-only is toggled", async() => {
+    search_only_toggle.click()
+
+    await showChart()
+
+    let chart = Chart.getChart("chart")
+
+    expect(chart.config.data.labels).toEqual(['4', '5'])
+    expect(chart.config.data.datasets[0].data).toEqual([1, 1])
+  })
+
+  it("shows wingspan data passed from API when search-only is not toggled", async() => {
     let option = document.createElement("option")
     option.value = "wingspan"
     option.selected = true
